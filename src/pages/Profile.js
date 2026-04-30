@@ -5,6 +5,7 @@ import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
 function Profile() {
     const navigate = useNavigate();
     const [user, setUser] = useState({
+        //Use mock data for example
         fullName: 'Alif Hafiz bin Danish',
         email: 'alif@gmail.com',
         role: 'Manager',
