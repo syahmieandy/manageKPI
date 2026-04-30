@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
 
 function Profile() {
     const navigate = useNavigate();
@@ -11,7 +12,6 @@ function Profile() {
     
     const [isEditing, setIsEditing] = useState(false);
     const [hoverBtn, setHoverBtn] = useState(null);
-
     const roleBadgeClass = user.role === 'Manager' ? 'bg-primary' : 'bg-secondary';
 
     const handleChange = (event) => {
@@ -52,22 +52,20 @@ function Profile() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: iconColor
+            color: iconColor,
         };
     };
 
     return (
-        <div className="container mt-5">
-            <div className="row justify-content-center">
-                <div className="col-md-6 col-lg-4">
-                    <div className="card shadow-sm border-0 position-relative">
-                        
+        <Container fluid className="min-vh-100 d-flex align-items-center justify-content-center" style={{ backgroundColor: 'var(--body-bg)' }}>
+            <Row>
+                <Col md={12}>
+                    <Card className="card-peach position-relative" style={{ width: '24rem' }}>
                         <div className="position-absolute top-0 end-0 m-3 d-flex align-items-center gap-2" style={{ zIndex: 10 }}>
-                            
                             <button
                                 type="button"
                                 onClick={toggleEditing}
-                                title={isEditing ? "Close" : "Edit profile"}
+                                title={isEditing ? 'Close' : 'Edit profile'}
                                 onMouseEnter={() => setHoverBtn('edit')}
                                 onMouseLeave={() => setHoverBtn(null)}
                                 style={getBtnStyle('edit')}
@@ -75,10 +73,17 @@ function Profile() {
                                 {isEditing ? (
                                     <span style={{ fontSize: '1.1rem', fontWeight: 'bold', padding: '0 4px' }}>X</span>
                                 ) : (
-                                    <img 
-                                        src="/settings.png" 
-                                        alt="Edit" 
-                                        style={{ width: '20px', height: '20px', filter: hoverBtn === 'edit' ? 'invert(37%) sepia(93%) saturate(1469%) hue-rotate(202deg) brightness(97%) contrast(105%)' : 'none' }} 
+                                    <img
+                                        src="/settings.png"
+                                        alt="Edit"
+                                        style={{
+                                            width: '20px',
+                                            height: '20px',
+                                            filter:
+                                                hoverBtn === 'edit'
+                                                    ? 'invert(37%) sepia(93%) saturate(1469%) hue-rotate(202deg) brightness(97%) contrast(105%)'
+                                                    : 'none',
+                                        }}
                                     />
                                 )}
                             </button>
@@ -91,15 +96,22 @@ function Profile() {
                                 onMouseLeave={() => setHoverBtn(null)}
                                 style={getBtnStyle('delete')}
                             >
-                                <img 
-                                    src="/delete.png" 
-                                    alt="Delete" 
-                                    style={{ width: '20px', height: '20px', filter: hoverBtn === 'delete' ? 'invert(15%) sepia(95%) saturate(6932%) hue-rotate(354deg) brightness(92%) contrast(93%)' : 'none' }} 
+                                <img
+                                    src="/delete.png"
+                                    alt="Delete"
+                                    style={{
+                                        width: '20px',
+                                        height: '20px',
+                                        filter:
+                                            hoverBtn === 'delete'
+                                                ? 'invert(15%) sepia(95%) saturate(6932%) hue-rotate(354deg) brightness(92%) contrast(93%)'
+                                                : 'none',
+                                    }}
                                 />
                             </button>
                         </div>
 
-                        <div className="card-body text-center p-4 pt-5">
+                        <Card.Body className="text-center p-4 pt-5">
                             <img
                                 src="/profile_picture.png"
                                 alt="Profile"
@@ -107,72 +119,78 @@ function Profile() {
                                 width="120"
                                 height="120"
                             />
-                            
-                            <h2 className="h4 mb-3">User Profile</h2>
-                            
-                            <div className="mb-3">
-                                <p className="mb-1 fw-semibold">Full Name</p>
+
+                            <Card.Title className="text-center mb-4" style={{ color: 'var(--peach-dark)', fontSize: '1.75rem', fontWeight: 'bold' }}>
+                                User Profile
+                            </Card.Title>
+
+                            <Form.Group className="mb-3 text-start">
+                                <Form.Label style={{ color: 'var(--text-dark)' }}>Full Name</Form.Label>
                                 {isEditing ? (
-                                    <input
+                                    <Form.Control
                                         type="text"
                                         name="fullName"
                                         value={user.fullName}
                                         onChange={handleChange}
-                                        className="form-control text-center"
                                         autoFocus
+                                        style={{ borderColor: 'var(--border)' }}
                                     />
                                 ) : (
                                     <p className="text-muted mb-0">{user.fullName}</p>
                                 )}
-                            </div>
+                            </Form.Group>
 
-                            <div className="mb-3">
-                                <p className="mb-1 fw-semibold">Email</p>
+                            <Form.Group className="mb-3 text-start">
+                                <Form.Label style={{ color: 'var(--text-dark)' }}>Email</Form.Label>
                                 {isEditing ? (
-                                    <input
+                                    <Form.Control
                                         type="email"
                                         name="email"
                                         value={user.email}
                                         onChange={handleChange}
-                                        className="form-control text-center"
+                                        style={{ borderColor: 'var(--border)' }}
                                     />
                                 ) : (
                                     <p className="text-muted mb-0">{user.email}</p>
                                 )}
-                            </div>
+                            </Form.Group>
 
-                            <div className="mb-4">
-                                <p className="mb-2 fw-semibold">Role</p>
+                            <Form.Group className="mb-4 text-start">
+                                <Form.Label style={{ color: 'var(--text-dark)' }}>Role</Form.Label>
                                 {isEditing ? (
-                                    <select
+                                    <Form.Select
                                         name="role"
                                         value={user.role}
                                         onChange={handleChange}
-                                        className="form-select text-center"
+                                        style={{ borderColor: 'var(--border)' }}
                                     >
                                         <option value="Manager">Manager</option>
                                         <option value="Staff">Staff</option>
-                                    </select>
+                                    </Form.Select>
                                 ) : (
-                                    <span className={`badge ${roleBadgeClass} px-3 py-2`}>
-                                        {user.role}
-                                    </span>
+                                    <div>
+                                        <span className={`badge ${roleBadgeClass} px-3 py-2`}>
+                                            {user.role}
+                                        </span>
+                                    </div>
                                 )}
-                            </div>
+                            </Form.Group>
 
                             {isEditing && (
-                                <button 
-                                    className="btn btn-success btn-sm w-100 mt-2 shadow-sm" 
+                                <Button
+                                    type="button"
+                                    variant="primary"
+                                    className="w-100"
                                     onClick={toggleEditing}
                                 >
                                     Save Changes
-                                </button>
+                                </Button>
                             )}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+                        </Card.Body>
+                    </Card>
+                </Col>
+            </Row>
+        </Container>
     );
 }
 
