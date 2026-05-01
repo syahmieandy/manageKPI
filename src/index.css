@@ -63,6 +63,8 @@ code {
 .btn-primary {
   background-color: var(--peach-base);
   border-color: var(--peach-base);
+  padding: 10px;
+  border-radius: 10px;
   color: var(--text-dark);
 }
 
