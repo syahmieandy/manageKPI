@@ -1,4 +1,4 @@
-export default function CommonModal({ modalTitle, children, onClose, onSubmit }) {
+export default function CommonModal({ modalTitle, children, onClose }) {
   return (
     <div className="modal d-block" tabIndex="-1">
       <div className="modal-dialog">
@@ -21,14 +21,6 @@ export default function CommonModal({ modalTitle, children, onClose, onSubmit })
               onClick={onClose}
             >
               Close
-            </button>
-
-            <button
-              onClick={onSubmit}
-              type="button"
-              className="btn btn-primary"
-            >
-              Submit
             </button>
           </div>
         </div>
