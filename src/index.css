@@ -1,3 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import 'bootstrap/dist/css/bootstrap.min.css';
+
+/* Override Bootstrap with Peach Theme */
+:root {
+  --peach-light: #FDE8E0;
+  --peach-base: #FDBCA6;
+  --peach-dark: #F2906E;
+  --peach-deep: #E06A4F;
+  
+  --cream: #FFF5F0;
+  --coral: #FF8A6F;
+  --terracotta: #D95A3E;
+  
+  --text-dark: #4A3729;
+  --text-muted: #8B6F5C;
+  --text-light: #FFFFFF;
+  
+  --success: #7CB342;
+  --warning: #FFA726;
+  --danger: #EF5350;
+  
+  --card-bg: #FFFFFF;
+  --body-bg: #FFF5F0;
+  --border: #FDBCA6;
+  --shadow: rgba(0, 0, 0, 0.08);
+
+  /* Bootstrap Override Colors */
+  --bs-primary: #FDBCA6;
+  --bs-primary-rgb: 253, 188, 166;
+  --bs-body-bg: #FFF5F0;
+  --bs-body-color: #4A3729;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -5,9 +42,36 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--body-bg);
+  color: var(--text-dark);
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* Custom Card Style */
+.card-peach {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px var(--shadow);
+}
+
+/* Custom Button Override */
+.btn-primary {
+  background-color: var(--peach-base);
+  border-color: var(--peach-base);
+  color: var(--text-dark);
+}
+
+.btn-primary:hover {
+  background-color: var(--peach-dark);
+  border-color: var(--peach-dark);
+}
+
+.btn-primary:disabled {
+  background-color: var(--peach-base);
+  opacity: 0.5;
 }
