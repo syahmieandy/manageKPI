@@ -1,192 +1,79 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
+import useAuth from "../hooks/useAuth";
+import { validateEmail } from "../utils/validation";
 
-import 'bootstrap/dist/css/bootstrap.min.css';
+export default function Login() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-function KpiProgressStaff() {
-  const [assignedKpis, setAssignedKpis] = useState([
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-// for now, using temporary sample data because backend is not ready
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
 
-    {
-      id: 1,
-      title: "Improve monthly sales report accuracy",
-      description: "Submit accurate monthly KPI report before deadline.",
-      deadline: "2026-05-10",
-      progress: 25,
-      evidence: "",
-      status: "In Progress"
-    },
-    {
-      id: 2,
-      title: "Complete customer feedback summary",
-      description: "Prepare feedback summary for manager review.",
-      deadline: "2026-05-15",
-      progress: 60,
-      evidence: "",
-      status: "In Progress"
+    if (!validateEmail(form.email)) return setError("Enter a valid email.");
+    if (!form.password) return setError("Password is required.");
+
+    try {
+      setLoading(true);
+      await login(form.email, form.password);
+      navigate("/dashboard");
+    } catch (err) {
+      setError("Login failed. Try again.");
+    } finally {
+      setLoading(false);
     }
-  ]);
-
-  const [message, setMessage] = useState("");
-
-  const ProgressUpdate = (id, newProgress) => {
-    const progressNumber = Number(newProgress);
-
-    // to prevent invalid values like below 0 or above 100
-    if (progressNumber < 0 || progressNumber > 100) {
-      return;
-    }
-
-    setAssignedKpis(
-      assignedKpis.map((kpi) => {
-        if (kpi.id === id) {
-          return {
-            ...kpi,
-            progress: progressNumber,
-            status:
-            kpi.status === "Completed with proof"
-              ? "Completed with proof"
-              : kpi.status === "Submitted"
-              ? "Submitted"
-              : progressNumber === 100
-              ? "Completed"
-              : "In Progress"
-          };
-        }
-        return kpi;
-      })
-    );
-  };
-
-  const EvidenceUpdate = (id, evidenceValue) => {
-    setAssignedKpis(
-      assignedKpis.map((kpi) => {
-        if (kpi.id === id) {
-          return {
-            ...kpi,
-            evidence: evidenceValue
-          };
-        }
-        return kpi;
-      })
-    );
-  };
-
-  const KpiSubmit = (id) => {
-    const selectedKpi = assignedKpis.find((kpi) => kpi.id === id);
-
-    if (!selectedKpi.evidence.trim()) {
-      alert("Enter evidence before submitting.");
-      return;
-    }
-    setAssignedKpis(
-      assignedKpis.map((kpi) => {
-        if (kpi.id === id) {
-          return {
-            ...kpi,
-            status:
-              selectedKpi.progress === 100
-                ? "Completed with proof"
-                : "Submitted"
-          };
-        }
-        return kpi;
-      })
-    );
-    setMessage("KPI submitted successfully!");
-      setTimeout(() => {
-        setMessage("");
-      }, 3000);
   };
 
   return (
-    <div className="container mt-4">
-      <h2>KPI Progress Page</h2>
-      <p className="text-muted">
-        Staff can check assigned KPIs, update their progress, and submit evidence.
-      </p>
+    <Container fluid className="min-vh-100 d-flex align-items-center justify-content-center">
+      <Row>
+        <Col md={12}>
+          <Card style={{ width: '24rem' }}>
+            <Card.Body>
+              <Card.Title className="text-center mb-4">
+                KPI System Login
+              </Card.Title>
 
-      {message && (
-      <div className="alert alert-success">
-        {message}
-      </div>
-    )}
+              {error && <Alert variant="danger">{error}</Alert>}
 
-      <div className="row">
-        {assignedKpis.map((kpi) => (
-          <div className="col-md-6 mb-3" key={kpi.id}>
-            <div className="card shadow-sm">
-              <div className="card-body">
-                <h5 className="card-title">{kpi.title}</h5>
-                <p className="card-text">{kpi.description}</p>
-                
-                <p>
-                  <strong>Deadline:</strong> {kpi.deadline}
-                </p>
+              <Form onSubmit={handleSubmit}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Email</Form.Label>
+                  <Form.Control
+                    type="email"
+                    name="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </Form.Group>
 
-                <p>
-                  <strong>Status:</strong>{" "}
-                  <span
-                    className={
-                      kpi.status === "Completed with proof"
-                        ? "badge bg-success"
-                        : kpi.status === "Completed"
-                        ? "badge bg-info text-dark"
-                        : kpi.status === "Submitted"
-                        ? "badge bg-secondary"
-                        : "badge bg-primary"
-                    }
-                  >
-                    {kpi.status}
-                  </span>
-                </p>
+                <Form.Group className="mb-3">
+                  <Form.Label>Password</Form.Label>
+                  <Form.Control
+                    type="password"
+                    name="password"
+                    value={form.password}
+                    onChange={handleChange}
+                    required
+                  />
+                </Form.Group>
 
-                <label className="form-label">
-                  Progress: {kpi.progress}%
-                </label>
-
-                <input
-                  type="range"
-                  className="form-range"
-                  min="0"
-                  max="100"
-                  value={kpi.progress}
-                  onChange={(event) =>
-                    ProgressUpdate(kpi.id, event.target.value)
-                  }
-                />
-
-                <label className="form-label">Evidence Link</label>
-                <input
-                  type="text"
-                  className="form-control mb-3"
-                  placeholder="Paste evidence link here"
-                  value={kpi.evidence}
-                  onChange={(event) =>
-                    EvidenceUpdate(kpi.id, event.target.value)
-                  }
-                />
-                
-                <button
-                  className="btn btn-primary"
-                  onClick={() => KpiSubmit(kpi.id)}
-                  disabled={
-                    kpi.status === "Submitted" ||
-                    kpi.status === "Completed with proof" ||
-                    !kpi.evidence.trim()
-                  }
-                >
-                  {kpi.status === "Submitted" || kpi.status === "Completed with proof"
-                    ? "Submitted"
-                    : "Submit Evidence"}
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+                <Button type="submit" className="w-100" disabled={loading}>
+                  {loading ? "Logging in..." : "Login"}
+                </Button>
+              </Form>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+    </Container>
   );
 }
-
-export default KpiProgressStaff;
