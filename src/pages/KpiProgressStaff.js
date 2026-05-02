@@ -6,22 +6,30 @@ function KpiProgressStaff() {
   const [assignedKpis, setAssignedKpis] = useState([
 
 // for now, using temporary sample data because backend is not ready
-
     {
       id: 1,
-      title: "Improve monthly sales report accuracy",
-      description: "Submit accurate monthly KPI report before deadline.",
-      deadline: "2026-05-10",
+      title: "Revenue Growth",
+      description: "Increase monthly recurring revenue",
+      deadline: "2026-06-30",
       progress: 25,
       evidence: "",
       status: "In Progress"
     },
     {
       id: 2,
-      title: "Complete customer feedback summary",
-      description: "Prepare feedback summary for manager review.",
-      deadline: "2026-05-15",
+      title: "Customer Retention",
+      description: "Improve customer retention rate",
+      deadline: "2026-09-30",
       progress: 60,
+      evidence: "",
+      status: "In Progress"
+    },
+    {
+      id: 3,
+      title: "Website Traffic",
+      description: "Increase organic traffic",
+      deadline: "2026-12-31",
+      progress: 10,
       evidence: "",
       status: "In Progress"
     }
