@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import KPI from "./pages/KPI";
+import KPIAssignment from "./pages/KPIAssignment";
 import Profile from "./pages/Profile";
 
 function Layout({ children }) {
@@ -45,6 +46,11 @@ function App() {
           <Route path="/kpi" element={
             <RoleRoute allowedRole="manager">
               <Layout><KPI /></Layout>
+            </RoleRoute>
+          } />
+          <Route path="/kpi-assignment" element={
+            <RoleRoute allowedRole="manager">
+              <Layout><KPIAssignment /></Layout>
             </RoleRoute>
           } />
 

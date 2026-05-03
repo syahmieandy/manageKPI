@@ -8,7 +8,16 @@ function ManageKPIButton() {
   return <PrimaryButton text="Manage KPI" onClick={() => navigate("/kpi")} />;
 }
 
-export default function Dashboard() {
-  return <ManageKPIButton />;
+function KPIAssignmentButton() {
+  const navigate = useNavigate();
+  return <PrimaryButton text="KPI Assignment & Verification" onClick={() => navigate("/kpi-assignment")} />;
 }
 
+export default function Dashboard() {
+  return (
+    <div>
+      <ManageKPIButton />
+      <KPIAssignmentButton />
+    </div>
+  );
+}
