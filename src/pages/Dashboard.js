@@ -2,6 +2,7 @@ import useAuth from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import PrimaryButton from "../components/PrimaryButton";
 
+<<<<<<< HEAD
 export default function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -26,4 +27,17 @@ export default function Dashboard() {
   }
 
   return null;
+
+// author: amin
+// Placeholder je ni
+function ManageKPIButton() {
+  const navigate = useNavigate();
+  return <PrimaryButton text="Manage KPI" onClick={() => navigate("/kpi")} />;
 }
+
+function KPIAssignmentButton() {
+  const navigate = useNavigate();
+  return <PrimaryButton text="KPI Assignment & Verification" onClick={() => navigate("/kpi-assignment")} />;
+}
+
+>>>>>>> main

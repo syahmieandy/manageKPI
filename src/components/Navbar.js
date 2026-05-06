@@ -22,6 +22,16 @@ export default function Navbar() {
         </BSNavbar.Brand>
         {user && (
           <div className="d-flex align-items-center gap-3">
+            {user.role === "manager" && (
+              <>
+                <Button variant="light" size="sm" style={{ color: 'var(--peach-dark)', fontWeight: '500' }} onClick={() => navigate("/kpi")}>
+                  Manage KPI
+                </Button>
+                <Button variant="light" size="sm" style={{ color: 'var(--peach-dark)', fontWeight: '500' }} onClick={() => navigate("/kpi-assignment")}>
+                  KPI Assignment
+                </Button>
+              </>
+            )}
             <span style={{ color: 'var(--text-dark)', fontSize: '0.875rem' }}>
               {user.name} —{" "}
               <span style={{ 
