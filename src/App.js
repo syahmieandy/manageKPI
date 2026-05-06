@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import KPI from "./pages/KPI";
 import KPIAssignment from "./pages/KPIAssignment";
 import Profile from "./pages/Profile";
+import KpiProgressStaff from "./pages/KpiProgressStaff";
 
 function Layout({ children }) {
   return (
@@ -36,6 +37,13 @@ function App() {
               <Layout><Dashboard /></Layout>
             </ProtectedRoute>
           } />
+
+          <Route path="/staff-kpi" element={
+            <RoleRoute allowedRole="staff">
+              <Layout><KpiProgressStaff /></Layout>
+            </RoleRoute>
+          } />
+          
           <Route path="/profile" element={
             <ProtectedRoute>
               <Layout><Profile /></Layout>
