@@ -2,50 +2,39 @@ import useAuth from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import PrimaryButton from "../components/PrimaryButton";
 
-<<<<<<< HEAD
-// author: amin
-// Placeholder je ni
-function ManageKPIButton() {
-  const navigate = useNavigate();
-  return <PrimaryButton text="Manage KPI" onClick={() => navigate("/kpi")} />;
-}
-
-function KPIAssignmentButton() {
-  const navigate = useNavigate();
-  return <PrimaryButton text="KPI Assignment & Verification" onClick={() => navigate("/kpi-assignment")} />;
-}
-
-export default function Dashboard() {
-  return (
-    <div>
-      <ManageKPIButton />
-      <KPIAssignmentButton />
-    </div>
-  );
-=======
 export default function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // manager gets kpi management page
+  // 1. Manager View
   if (user?.role === "manager") {
     return (
-      <PrimaryButton
-        text="Manage KPI"
-        onClick={() => navigate("/kpi")}
-      />
+      <div className="dashboard-container">
+        <PrimaryButton
+          text="Manage KPI"
+          onClick={() => navigate("/kpi")}
+        />
+        {/* Integrated Amin's assignment button inside the manager check */}
+        <PrimaryButton 
+          text="KPI Assignment & Verification" 
+          onClick={() => navigate("/kpi-assignment")} 
+        />
+      </div>
     );
   }
 
+  // 2. Staff View: Keeps the progress update focus
   if (user?.role === "staff") {
     return (
-      <PrimaryButton
-        text="Update KPI Progress"
-        onClick={() => navigate("/staff-kpi")}
-      />
+      <div className="dashboard-container">
+        <PrimaryButton
+          text="Update KPI Progress"
+          onClick={() => navigate("/staff-kpi")}
+        />
+      </div>
     );
   }
 
+  // 3. Fallback: For unauthorized users or loading states
   return null;
->>>>>>> f0c4421b8c0a024460f45fc91c011f5a9476d423
 }

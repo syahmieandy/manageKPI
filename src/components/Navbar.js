@@ -44,6 +44,20 @@ export default function Navbar() {
                 {user.role}
               </span>
             </span>
+
+            <img
+              src="/profile_picture.png"
+              alt="Profile"
+              onClick={() => navigate("/profile")}
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                cursor: 'pointer',
+                objectFit: 'cover',
+                border: '2px solid var(--peach-dark)'
+              }}
+            />
             <Button 
               onClick={handleLogout}
               variant="light"

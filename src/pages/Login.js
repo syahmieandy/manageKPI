@@ -70,6 +70,16 @@ export default function Login() {
                   {loading ? "Logging in..." : "Login"}
                 </Button>
               </Form>
+
+              <div className="text-center mt-3">
+                <span style={{ color: 'var(--text-muted)' }}>Don't have an account? </span>
+                <span
+                  style={{ color: 'var(--peach-dark)', cursor: 'pointer', fontWeight: '500' }}
+                  onClick={() => navigate("/register")}
+                >
+                  Register
+                </span>
+              </div>
             </Card.Body>
           </Card>
         </Col>
