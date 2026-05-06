@@ -26,4 +26,9 @@ export default function Dashboard() {
   }
 
   return null;
+function KPIAssignmentButton() {
+  const navigate = useNavigate();
+  return <PrimaryButton text="KPI Assignment & Verification" onClick={() => navigate("/kpi-assignment")} />;
+}
+
 }
