@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
 import useAuth from "../hooks/useAuth";
@@ -6,11 +6,17 @@ import { validateEmail } from "../utils/validation";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+   useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
+  
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
@@ -23,10 +29,8 @@ export default function Login() {
     try {
       setLoading(true);
       await login(form.email, form.password);
-      navigate("/dashboard");
     } catch (err) {
       setError("Login failed. Try again.");
-    } finally {
       setLoading(false);
     }
   };
