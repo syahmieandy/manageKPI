@@ -24,7 +24,6 @@ export default function Dashboard() {
     return (
       <div className="dashboard-container p-4 mb-4">
 
-        {/* Existing buttons — unchanged */}
         <div className="d-flex gap-2 mb-4">
           <PrimaryButton
             text="Manage KPI"
@@ -37,7 +36,7 @@ export default function Dashboard() {
         </div>
 
 
-        {/*ADD: Summary cards */}
+        {/*Summary cards */}
         <div className="row mb-4">
           <div className="col-md-4">
             <div className="card text-center shadow-sm">
@@ -65,7 +64,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/*ADD: Bar chart */}
+        {/*Bar chart */}
         <div className="card shadow-sm mb-4 p-3">
           <h6 className="mb-3">KPI Progress Overview</h6>
           <ResponsiveContainer width="100%" height={300}>
@@ -78,7 +77,7 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </div>
 
-        {/*ADD: Per KPI progress bars */}
+        {/*Per KPI progress bars */}
         <div className="card shadow-sm mb-4 p-3">
           <h6 className="mb-3">Individual KPI Progress</h6>
           {mockKpis.map(kpi => (
@@ -107,8 +106,15 @@ export default function Dashboard() {
   if (user?.role === "staff") {
     return (
       <div className="dashboard-container p-4">
+        
+        <div className="d-flex gap-2 mb-4">
+          <PrimaryButton
+            text="Update KPI Progress"
+            onClick={() => navigate("/staff-kpi")}
+          />
+        </div>
 
-        {/* ✅ ADD: Staff KPI progress bars */}
+        {/*Staff KPI progress bars */}
         <div className="card shadow-sm mb-4 p-3">
           <h6 className="mb-3">My KPI Progress</h6>
           {mockKpis.map(kpi => (
@@ -126,12 +132,6 @@ export default function Dashboard() {
             </div>
           ))}
         </div>
-
-        {/* Existing button — unchanged */}
-        <PrimaryButton
-          text="Update KPI Progress"
-          onClick={() => navigate("/staff-kpi")}
-        />
 
       </div>
     );
