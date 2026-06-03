@@ -7,53 +7,37 @@ import {
   onAuthStateChanged,
   updateProfile
 } from "firebase/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
+import { createUserProfile } from "../services/userService";
 
 export const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // prevent flicker on refresh
+  const [loading, setLoading] = useState(true);
 
-  // Register: create Firebase user + save role/name to Firestore
   const register = async (name, email, password, role) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const firebaseUser = userCredential.user;
 
-    // Save display name to Firebase Auth
     await updateProfile(firebaseUser, { displayName: name });
-
-    // Save role + name to Firestore users collection
-    await setDoc(doc(db, "users", firebaseUser.uid), {
-      uid: firebaseUser.uid,
-      name,
-      email,
-      role  // "manager" or "staff"
-    });
+    await createUserProfile(firebaseUser.uid, name, email, role); // ← uses service now
   };
 
-  // Login: Firebase handles password check
-  const login = (email, password) => {
-    return signInWithEmailAndPassword(auth, email, password);
-  };
+  const login = (email, password) => signInWithEmailAndPassword(auth, email, password);
+  const logout = () => signOut(auth);
 
-  // Logout
-  const logout = () => {
-    return signOut(auth);
-  };
-
-  // Listen to auth state — runs on every page load/refresh
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        // Fetch role from Firestore
-        const docSnap = await getDoc(doc(db, "users", firebaseUser.uid));
-        if (docSnap.exists()) {
+        const snap = await getDoc(doc(db, "users", firebaseUser.uid));
+        if (snap.exists()) {
           setUser({
             uid: firebaseUser.uid,
             name: firebaseUser.displayName,
             email: firebaseUser.email,
-            role: docSnap.data().role
+            role: snap.data().role,
+            photoURL: snap.data().photoURL || "",
           });
         }
       } else {
@@ -62,11 +46,11 @@ export function AuthProvider({ children }) {
       setLoading(false);
     });
 
-    return () => unsubscribe(); // cleanup on unmount
+    return () => unsubscribe();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, register, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, setUser, register, login, logout, loading }}>
       {!loading && children}
     </AuthContext.Provider>
   );
