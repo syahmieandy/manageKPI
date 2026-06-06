@@ -34,35 +34,60 @@ function App() {
             <Route path="/profile" element={<Profile />} />
 
             {/* Protected routes — any logged in user */}
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Layout><Dashboard /></Layout>
-              </ProtectedRoute>
-            } />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Dashboard />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
 
-            <Route path="/staff-kpi" element={
-              <RoleRoute allowedRole="staff">
-                <Layout><KpiProgressStaff /></Layout>
-              </RoleRoute>
-            } />
-            
-            <Route path="/profile" element={
-              <ProtectedRoute>
-                <Layout><Profile /></Layout>
-              </ProtectedRoute>
-            } />
+            <Route
+              path="/staff-kpi"
+              element={
+                <RoleRoute allowedRole="staff">
+                  <Layout>
+                    <KpiProgressStaff />
+                  </Layout>
+                </RoleRoute>
+              }
+            />
+
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Profile />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
 
             {/* Role-restricted — Manager only */}
-            <Route path="/kpi" element={
-              <RoleRoute allowedRole="manager">
-                <Layout><KPI /></Layout>
-              </RoleRoute>
-            } />
-            <Route path="/kpi-assignment" element={
-              <RoleRoute allowedRole="manager">
-                <Layout><KPIAssignment /></Layout>
-              </RoleRoute>
-            } />
+            <Route
+              path="/kpi"
+              element={
+                <RoleRoute allowedRole="manager">
+                  <Layout>
+                    <KPI />
+                  </Layout>
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="/kpi-assignment"
+              element={
+                <RoleRoute allowedRole="manager">
+                  <Layout>
+                    <KPIAssignment />
+                  </Layout>
+                </RoleRoute>
+              }
+            />
 
             {/* Catch-all */}
             <Route path="*" element={<Navigate to="/login" replace />} />

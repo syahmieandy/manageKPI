@@ -1,43 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PrimaryButton from "../components/PrimaryButton";
 import CommonModal from "../components/CommonModal";
+import {
+  createKpi,
+  updateKpi,
+  getKpis,
+  deleteKpi,
+  subscribeKpi,
+} from "../services/kpiService";
+import useAuth from "../hooks/useAuth";
 
-// Mock Data (sementara saja)
-const mockKpis = [
-  {
-    id: 1,
-    title: "Revenue Growth",
-    description: "Increase monthly recurring revenue",
-    objective: "Grow sales pipeline",
-    target: 15,
-    deadline: "2026-06-30",
-  },
-  {
-    id: 2,
-    title: "Customer Retention",
-    description: "Improve customer retention rate",
-    objective: "Reduce churn",
-    target: 90,
-    deadline: "2026-09-30",
-  },
-  {
-    id: 3,
-    title: "Website Traffic",
-    description: "Increase organic traffic",
-    objective: "SEO improvement",
-    target: 50000,
-    deadline: "2026-12-31",
-  },
-];
-
-function CreateKPIForm({ onSubmit, editingKPI }) {
+function CreateKPIForm({ onSubmit, editingKPI, createdBy, loading }) {
   const [form, setForm] = useState({
     title: editingKPI?.title || "",
     description: editingKPI?.description || "",
-    objective: editingKPI?.objective || "",
     target: editingKPI?.target || "",
     deadline: editingKPI?.deadline || "",
   });
+
+  const today = new Date().toISOString().split("T")[0];
 
   function handleChange(e) {
     setForm({
@@ -48,7 +29,7 @@ function CreateKPIForm({ onSubmit, editingKPI }) {
 
   function handleSubmit(e) {
     e.preventDefault();
-    onSubmit(form);
+    onSubmit({ ...form, createdBy: createdBy });
   }
 
   return (
@@ -75,21 +56,13 @@ function CreateKPIForm({ onSubmit, editingKPI }) {
         </div>
 
         <div className="mb-3">
-          <label className="form-label">Objective</label>
-          <input
-            className="form-control"
-            name="objective"
-            value={form.objective}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className="mb-3">
           <label className="form-label">Target (%)</label>
           <input
             className="form-control"
             name="target"
             type="number"
+            min="1"
+            max="100"
             value={form.target}
             onChange={handleChange}
           />
@@ -101,51 +74,91 @@ function CreateKPIForm({ onSubmit, editingKPI }) {
             className="form-control"
             name="deadline"
             type="date"
+            min={today}
             value={form.deadline}
             onChange={handleChange}
           />
         </div>
 
-        <button type="submit" className="btn btn-primary">
-          Save
+        <button type="submit" className="btn btn-primary" disabled={loading}>
+          {loading ? (
+            <>
+              <span
+                className="spinner-border spinner-border-sm me-2"
+                role="status"
+                aria-hidden="true"
+              />
+              Saving...
+            </>
+          ) : (
+            "Save"
+          )}
         </button>
       </form>
     </div>
   );
 }
 
-function CreateKPIModal({ setModalOpen, onSubmit, editingKpi }) {
+function CreateKPIModal({
+  setModalOpen,
+  onSubmit,
+  editingKpi,
+  createdBy,
+  loading,
+}) {
   return (
     <CommonModal
       modalTitle={editingKpi ? "Edit KPI" : "Create KPI"}
       onClose={() => setModalOpen(false)}
     >
-      <CreateKPIForm onSubmit={onSubmit} editingKPI={editingKpi} />
+      <CreateKPIForm
+        onSubmit={onSubmit}
+        editingKPI={editingKpi}
+        createdBy={createdBy}
+        loading={loading}
+      />
     </CommonModal>
   );
 }
 
 export default function KPI() {
   const [isModalOpen, setModalOpen] = useState(false);
-  const [kpis, setKpis] = useState(mockKpis);
+  const [kpis, setKpis] = useState([]);
   const [editingKPI, setEditingKPI] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const { user } = useAuth();
 
-  function onSave(data) {
-    if (editingKPI) {
-      setKpis(
-        kpis.map((kpi) =>
-          kpi.id === editingKPI.id ? { ...kpi, ...data } : kpi,
-        ),
-      );
-      setEditingKPI(null);
-    } else {
-      setKpis([...kpis, { id: Date.now(), ...data }]);
+  useEffect(() => {
+    const unsubscribe = subscribeKpi((data) => {
+      console.log("Real-time update received:", data);
+      setKpis(data);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  async function onSave(data) {
+    setIsSaving(true);
+    try {
+      if (editingKPI) {
+        const targetKpi = kpis.find((kpi) => kpi.id === editingKPI.id);
+        if (targetKpi) {
+          await updateKpi(targetKpi.id, data);
+        }
+        setEditingKPI(null);
+        setModalOpen(false);
+      } else {
+        const id = await createKpi(data);
+        setModalOpen(false);
+      }
+    } finally {
+      setIsSaving(false);
     }
   }
 
   /* DELETE */
-  function deleteKPI(id) {
-    setKpis(kpis.filter((kpi) => kpi.id !== id));
+  async function deleteKPI(id) {
+    await deleteKpi(id);
   }
 
   /* EDIT */
@@ -168,6 +181,8 @@ export default function KPI() {
           setModalOpen={setModalOpen}
           onSubmit={onSave}
           editingKpi={editingKPI}
+          createdBy={user.name}
+          loading={isSaving}
         />
       )}
 
@@ -177,7 +192,7 @@ export default function KPI() {
           <tr>
             <th>Title</th>
             <th>Description</th>
-            <th>Objective</th>
+            <th>Created By</th>
             <th>Target</th>
             <th>Deadline</th>
             <th>Actions</th>
@@ -189,23 +204,45 @@ export default function KPI() {
             <tr key={kpi.id}>
               <td>{kpi.title}</td>
               <td>{kpi.description}</td>
-              <td>{kpi.objective}</td>
+              <td>{kpi.createdBy}</td>
               <td>{kpi.target}%</td>
               <td>{kpi.deadline}</td>
               <td>
-                <button
-                  className="btn btn-warning btn-sm me-2"
-                  onClick={() => editKPI(kpi)}
-                >
-                  Edit
-                </button>
+                {user.name == kpi.createdBy ? (
+                  <>
+                    <button
+                      className="btn btn-warning btn-sm me-2"
+                      onClick={() => editKPI(kpi)}
+                    >
+                      Edit
+                    </button>
 
-                <button
-                  className="btn btn-danger btn-sm"
-                  onClick={() => deleteKPI(kpi.id)}
-                >
-                  Delete
-                </button>
+                    <button
+                      className="btn btn-danger btn-sm"
+                      onClick={() => deleteKPI(kpi.id)}
+                    >
+                      Delete
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      className="btn btn-warning btn-sm me-2"
+                      onClick={() => editKPI(kpi)}
+                      disabled={true}
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      className="btn btn-danger btn-sm"
+                      onClick={() => deleteKPI(kpi.id)}
+                      disabled={true}
+                    >
+                      Delete
+                    </button>
+                  </>
+                )}
               </td>
             </tr>
           ))}

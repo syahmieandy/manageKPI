@@ -1,10 +1,11 @@
 import { db, auth } from "../firebase/config";
+import { doc, setDoc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
 import {
-  doc, setDoc, getDoc, updateDoc, deleteDoc
-} from "firebase/firestore";
-import {
-  updateProfile, updatePassword,
-  reauthenticateWithCredential, EmailAuthProvider, deleteUser
+  updateProfile,
+  updatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+  deleteUser,
 } from "firebase/auth";
 import { createUserModel, updateUserModel } from "../models/userModel";
 
@@ -45,7 +46,7 @@ export const changeUserPassword = async (currentPassword, newPassword) => {
   const credential = EmailAuthProvider.credential(user.email, currentPassword);
 
   await reauthenticateWithCredential(user, credential); // verify old password
-  await updatePassword(user, newPassword);              // set new password
+  await updatePassword(user, newPassword); // set new password
 };
 
 // ─── DELETE / DEACTIVATE ───────────────────────────────────
@@ -55,12 +56,11 @@ export const deleteUserAccount = async (currentPassword) => {
   const credential = EmailAuthProvider.credential(user.email, currentPassword);
 
   await reauthenticateWithCredential(user, credential);
-  await deleteDoc(doc(db, "users", user.uid));  // remove Firestore data
-  await deleteUser(user);                        // remove Auth account
+  await deleteDoc(doc(db, "users", user.uid)); // remove Firestore data
+  await deleteUser(user); // remove Auth account
 };
 
 // Soft deactivate: keeps data but marks account inactive
 export const deactivateUserAccount = async (uid) => {
   await updateDoc(doc(db, "users", uid), updateUserModel({ isActive: false }));
 };
-

@@ -1,16 +1,28 @@
 import useAuth from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import PrimaryButton from "../components/PrimaryButton";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 // Mock data — replace with real data later
 const mockKpis = [
   { id: 1, title: "Revenue Growth", progress: 25, status: "In Progress" },
   { id: 2, title: "Customer Retention", progress: 60, status: "In Progress" },
-  { id: 3, title: "Website Traffic", progress: 100, status: "Completed with proof" },
+  {
+    id: 3,
+    title: "Website Traffic",
+    progress: 100,
+    status: "Completed with proof",
+  },
 ];
 
-const chartData = mockKpis.map(k => ({
+const chartData = mockKpis.map((k) => ({
   name: k.title,
   progress: k.progress,
 }));
@@ -23,18 +35,13 @@ export default function Dashboard() {
   if (user?.role === "manager") {
     return (
       <div className="dashboard-container p-4 mb-4">
-
         <div className="d-flex gap-2 mb-4">
-          <PrimaryButton
-            text="Manage KPI"
-            onClick={() => navigate("/kpi")}
-          />
+          <PrimaryButton text="Manage KPI" onClick={() => navigate("/kpi")} />
           <PrimaryButton
             text="KPI Assignment & Verification"
             onClick={() => navigate("/kpi-assignment")}
-            />
+          />
         </div>
-
 
         {/*Summary cards */}
         <div className="row mb-4">
@@ -50,7 +57,12 @@ export default function Dashboard() {
             <div className="card text-center shadow-sm">
               <div className="card-body">
                 <h6 className="text-muted">Completed</h6>
-                <h2>{mockKpis.filter(k => k.status === "Completed with proof").length}</h2>
+                <h2>
+                  {
+                    mockKpis.filter((k) => k.status === "Completed with proof")
+                      .length
+                  }
+                </h2>
               </div>
             </div>
           </div>
@@ -58,7 +70,9 @@ export default function Dashboard() {
             <div className="card text-center shadow-sm">
               <div className="card-body">
                 <h6 className="text-muted">In Progress</h6>
-                <h2>{mockKpis.filter(k => k.status === "In Progress").length}</h2>
+                <h2>
+                  {mockKpis.filter((k) => k.status === "In Progress").length}
+                </h2>
               </div>
             </div>
           </div>
@@ -80,7 +94,7 @@ export default function Dashboard() {
         {/*Per KPI progress bars */}
         <div className="card shadow-sm mb-4 p-3">
           <h6 className="mb-3">Individual KPI Progress</h6>
-          {mockKpis.map(kpi => (
+          {mockKpis.map((kpi) => (
             <div key={kpi.id} className="mb-3">
               <div className="d-flex justify-content-between mb-1">
                 <span>{kpi.title}</span>
@@ -95,9 +109,6 @@ export default function Dashboard() {
             </div>
           ))}
         </div>
-
-      
-
       </div>
     );
   }
@@ -106,7 +117,6 @@ export default function Dashboard() {
   if (user?.role === "staff") {
     return (
       <div className="dashboard-container p-4">
-        
         <div className="d-flex gap-2 mb-4">
           <PrimaryButton
             text="Update KPI Progress"
@@ -117,7 +127,7 @@ export default function Dashboard() {
         {/*Staff KPI progress bars */}
         <div className="card shadow-sm mb-4 p-3">
           <h6 className="mb-3">My KPI Progress</h6>
-          {mockKpis.map(kpi => (
+          {mockKpis.map((kpi) => (
             <div key={kpi.id} className="mb-3">
               <div className="d-flex justify-content-between mb-1">
                 <span>{kpi.title}</span>
@@ -132,7 +142,6 @@ export default function Dashboard() {
             </div>
           ))}
         </div>
-
       </div>
     );
   }

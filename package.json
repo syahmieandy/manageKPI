@@ -25,6 +25,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "format": "npx prettier --write src/",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -49,5 +50,8 @@
   "main": "postcss.config.js",
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "prettier": "3.8.3"
+  }
 }

@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 
-import 'bootstrap/dist/css/bootstrap.min.css';
+import "bootstrap/dist/css/bootstrap.min.css";
 
 function KpiProgressStaff() {
   const [assignedKpis, setAssignedKpis] = useState([
-
-// for now, using temporary sample data because backend is not ready
+    // for now, using temporary sample data because backend is not ready
     {
       id: 1,
       title: "Revenue Growth",
@@ -13,7 +12,7 @@ function KpiProgressStaff() {
       deadline: "2026-06-30",
       progress: 25,
       evidence: "",
-      status: "In Progress"
+      status: "In Progress",
     },
     {
       id: 2,
@@ -22,7 +21,7 @@ function KpiProgressStaff() {
       deadline: "2026-09-30",
       progress: 60,
       evidence: "",
-      status: "In Progress"
+      status: "In Progress",
     },
     {
       id: 3,
@@ -31,8 +30,8 @@ function KpiProgressStaff() {
       deadline: "2026-12-31",
       progress: 10,
       evidence: "",
-      status: "In Progress"
-    }
+      status: "In Progress",
+    },
   ]);
 
   const [message, setMessage] = useState("");
@@ -52,17 +51,17 @@ function KpiProgressStaff() {
             ...kpi,
             progress: progressNumber,
             status:
-            kpi.status === "Completed with proof"
-              ? "Completed with proof"
-              : kpi.status === "Submitted"
-              ? "Submitted"
-              : progressNumber === 100
-              ? "Completed"
-              : "In Progress"
+              kpi.status === "Completed with proof"
+                ? "Completed with proof"
+                : kpi.status === "Submitted"
+                  ? "Submitted"
+                  : progressNumber === 100
+                    ? "Completed"
+                    : "In Progress",
           };
         }
         return kpi;
-      })
+      }),
     );
   };
 
@@ -72,11 +71,11 @@ function KpiProgressStaff() {
         if (kpi.id === id) {
           return {
             ...kpi,
-            evidence: evidenceValue
+            evidence: evidenceValue,
           };
         }
         return kpi;
-      })
+      }),
     );
   };
 
@@ -95,30 +94,27 @@ function KpiProgressStaff() {
             status:
               selectedKpi.progress === 100
                 ? "Completed with proof"
-                : "Submitted"
+                : "Submitted",
           };
         }
         return kpi;
-      })
+      }),
     );
     setMessage("KPI submitted successfully!");
-      setTimeout(() => {
-        setMessage("");
-      }, 3000);
+    setTimeout(() => {
+      setMessage("");
+    }, 3000);
   };
 
   return (
     <div className="container mt-4">
       <h2>KPI Progress Page</h2>
       <p className="text-muted">
-        Staff can check assigned KPIs, update their progress, and submit evidence.
+        Staff can check assigned KPIs, update their progress, and submit
+        evidence.
       </p>
 
-      {message && (
-      <div className="alert alert-success">
-        {message}
-      </div>
-    )}
+      {message && <div className="alert alert-success">{message}</div>}
 
       <div className="row">
         {assignedKpis.map((kpi) => (
@@ -127,7 +123,7 @@ function KpiProgressStaff() {
               <div className="card-body">
                 <h5 className="card-title">{kpi.title}</h5>
                 <p className="card-text">{kpi.description}</p>
-                
+
                 <p>
                   <strong>Deadline:</strong> {kpi.deadline}
                 </p>
@@ -139,19 +135,17 @@ function KpiProgressStaff() {
                       kpi.status === "Completed with proof"
                         ? "badge bg-success"
                         : kpi.status === "Completed"
-                        ? "badge bg-info text-dark"
-                        : kpi.status === "Submitted"
-                        ? "badge bg-secondary"
-                        : "badge bg-primary"
+                          ? "badge bg-info text-dark"
+                          : kpi.status === "Submitted"
+                            ? "badge bg-secondary"
+                            : "badge bg-primary"
                     }
                   >
                     {kpi.status}
                   </span>
                 </p>
 
-                <label className="form-label">
-                  Progress: {kpi.progress}%
-                </label>
+                <label className="form-label">Progress: {kpi.progress}%</label>
 
                 <input
                   type="range"
@@ -174,7 +168,7 @@ function KpiProgressStaff() {
                     EvidenceUpdate(kpi.id, event.target.value)
                   }
                 />
-                
+
                 <button
                   className="btn btn-primary"
                   onClick={() => KpiSubmit(kpi.id)}
@@ -184,7 +178,8 @@ function KpiProgressStaff() {
                     !kpi.evidence.trim()
                   }
                 >
-                  {kpi.status === "Submitted" || kpi.status === "Completed with proof"
+                  {kpi.status === "Submitted" ||
+                  kpi.status === "Completed with proof"
                     ? "Submitted"
                     : "Submit Evidence"}
                 </button>

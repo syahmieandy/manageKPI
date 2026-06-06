@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  Form,
+  Button,
+  Alert,
+} from "react-bootstrap";
 import useAuth from "../hooks/useAuth";
 import { validateEmail } from "../utils/validation";
 
@@ -11,13 +19,14 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-   useEffect(() => {
+  useEffect(() => {
     if (user) {
       navigate("/dashboard");
     }
   }, [user, navigate]);
-  
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,10 +45,13 @@ export default function Login() {
   };
 
   return (
-    <Container fluid className="min-vh-100 d-flex align-items-center justify-content-center">
+    <Container
+      fluid
+      className="min-vh-100 d-flex align-items-center justify-content-center"
+    >
       <Row>
         <Col md={12}>
-          <Card style={{ width: '24rem' }}>
+          <Card style={{ width: "24rem" }}>
             <Card.Body>
               <Card.Title className="text-center mb-4">
                 KPI System Login
@@ -76,9 +88,15 @@ export default function Login() {
               </Form>
 
               <div className="text-center mt-3">
-                <span style={{ color: 'var(--text-muted)' }}>Don't have an account? </span>
+                <span style={{ color: "var(--text-muted)" }}>
+                  Don't have an account?{" "}
+                </span>
                 <span
-                  style={{ color: 'var(--peach-dark)', cursor: 'pointer', fontWeight: '500' }}
+                  style={{
+                    color: "var(--peach-dark)",
+                    cursor: "pointer",
+                    fontWeight: "500",
+                  }}
                   onClick={() => navigate("/register")}
                 >
                   Register
