@@ -5,7 +5,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  updateProfile
+  updateProfile,
 } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { createUserProfile } from "../services/userService";
@@ -17,14 +17,19 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   const register = async (name, email, password, role) => {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password,
+    );
     const firebaseUser = userCredential.user;
 
     await updateProfile(firebaseUser, { displayName: name });
     await createUserProfile(firebaseUser.uid, name, email, role); // ← uses service now
   };
 
-  const login = (email, password) => signInWithEmailAndPassword(auth, email, password);
+  const login = (email, password) =>
+    signInWithEmailAndPassword(auth, email, password);
   const logout = () => signOut(auth);
 
   useEffect(() => {
@@ -50,7 +55,9 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, setUser, register, login, logout, loading }}>
+    <AuthContext.Provider
+      value={{ user, setUser, register, login, logout, loading }}
+    >
       {!loading && children}
     </AuthContext.Provider>
   );

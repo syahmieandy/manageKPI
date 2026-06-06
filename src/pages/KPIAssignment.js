@@ -37,7 +37,7 @@ const mockAssignments = [
     staffUid: "s1",
     staffName: "Ahmad Faris",
     assignedAt: "2026-04-01",
-    status: "pending",      // pending | submitted | approved | rejected
+    status: "pending", // pending | submitted | approved | rejected
     progress: null,
     evidence: null,
     submittedAt: null,
@@ -54,7 +54,8 @@ const mockAssignments = [
     assignedAt: "2026-04-05",
     status: "submitted",
     progress: 82,
-    evidence: "Attached monthly churn report showing 82% retention rate achieved through targeted follow-up campaigns.",
+    evidence:
+      "Attached monthly churn report showing 82% retention rate achieved through targeted follow-up campaigns.",
     submittedAt: "2026-04-28",
     managerComment: "",
   },
@@ -69,7 +70,8 @@ const mockAssignments = [
     assignedAt: "2026-04-10",
     status: "approved",
     progress: 55000,
-    evidence: "Google Analytics export — organic sessions reached 55,243 in Q1.",
+    evidence:
+      "Google Analytics export — organic sessions reached 55,243 in Q1.",
     submittedAt: "2026-04-25",
     managerComment: "Excellent work! Exceeded target by 10%. Keep it up.",
   },
@@ -78,10 +80,10 @@ const mockAssignments = [
 // ─── Status helpers ───────────────────────────────────────────────────────────
 
 const STATUS_META = {
-  pending:   { label: "Pending",   bg: "warning",  text: "dark" },
-  submitted: { label: "Submitted", bg: "info",     text: "dark" },
-  approved:  { label: "Approved",  bg: "success",  text: "light" },
-  rejected:  { label: "Rejected",  bg: "danger",   text: "light" },
+  pending: { label: "Pending", bg: "warning", text: "dark" },
+  submitted: { label: "Submitted", bg: "info", text: "dark" },
+  approved: { label: "Approved", bg: "success", text: "light" },
+  rejected: { label: "Rejected", bg: "danger", text: "light" },
 };
 
 function StatusBadge({ status }) {
@@ -131,7 +133,11 @@ function AssignKPIModal({ onClose, onAssign }) {
 
   return (
     <CommonModal modalTitle="Assign KPI to Staff" onClose={onClose}>
-      {error && <Alert variant="danger" className="py-2">{error}</Alert>}
+      {error && (
+        <Alert variant="danger" className="py-2">
+          {error}
+        </Alert>
+      )}
 
       <Form.Group className="mb-3">
         <Form.Label style={{ color: "var(--text-dark)", fontWeight: 500 }}>
@@ -169,11 +175,7 @@ function AssignKPIModal({ onClose, onAssign }) {
         </Form.Select>
       </Form.Group>
 
-      <Button
-        variant="primary"
-        className="w-100"
-        onClick={handleSubmit}
-      >
+      <Button variant="primary" className="w-100" onClick={handleSubmit}>
         Assign KPI
       </Button>
     </CommonModal>
@@ -199,42 +201,101 @@ function ReviewModal({ assignment, onClose, onDecision }) {
       {/* KPI Info */}
       <div
         className="rounded p-3 mb-3"
-        style={{ backgroundColor: "var(--peach-light)", border: "1px solid var(--border)" }}
+        style={{
+          backgroundColor: "var(--peach-light)",
+          border: "1px solid var(--border)",
+        }}
       >
         <Row className="g-2">
           <Col xs={6}>
-            <div style={{ fontSize: "0.72rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Staff</div>
-            <div style={{ fontWeight: 600, color: "var(--text-dark)" }}>{assignment.staffName}</div>
+            <div
+              style={{
+                fontSize: "0.72rem",
+                color: "var(--text-muted)",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+              }}
+            >
+              Staff
+            </div>
+            <div style={{ fontWeight: 600, color: "var(--text-dark)" }}>
+              {assignment.staffName}
+            </div>
           </Col>
           <Col xs={6}>
-            <div style={{ fontSize: "0.72rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Status</div>
+            <div
+              style={{
+                fontSize: "0.72rem",
+                color: "var(--text-muted)",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+              }}
+            >
+              Status
+            </div>
             <StatusBadge status={assignment.status} />
           </Col>
           <Col xs={6}>
-            <div style={{ fontSize: "0.72rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Target</div>
-            <div style={{ color: "var(--text-dark)" }}>{assignment.kpiTarget}%</div>
+            <div
+              style={{
+                fontSize: "0.72rem",
+                color: "var(--text-muted)",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+              }}
+            >
+              Target
+            </div>
+            <div style={{ color: "var(--text-dark)" }}>
+              {assignment.kpiTarget}%
+            </div>
           </Col>
           <Col xs={6}>
-            <div style={{ fontSize: "0.72rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Deadline</div>
-            <div style={{ color: "var(--text-dark)" }}>{assignment.kpiDeadline}</div>
+            <div
+              style={{
+                fontSize: "0.72rem",
+                color: "var(--text-muted)",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+              }}
+            >
+              Deadline
+            </div>
+            <div style={{ color: "var(--text-dark)" }}>
+              {assignment.kpiDeadline}
+            </div>
           </Col>
         </Row>
       </div>
 
       {/* Submission Details */}
       {assignment.status === "pending" ? (
-        <Alert variant="warning" className="py-2" style={{ fontSize: "0.875rem" }}>
+        <Alert
+          variant="warning"
+          className="py-2"
+          style={{ fontSize: "0.875rem" }}
+        >
           No submission yet from this staff member.
         </Alert>
       ) : (
         <>
           <Form.Group className="mb-3">
-            <Form.Label style={{ fontWeight: 600, color: "var(--text-dark)", fontSize: "0.875rem" }}>
+            <Form.Label
+              style={{
+                fontWeight: 600,
+                color: "var(--text-dark)",
+                fontSize: "0.875rem",
+              }}
+            >
               Progress Reported
             </Form.Label>
             <div
               className="rounded p-2"
-              style={{ border: "1px solid var(--border)", backgroundColor: "#fff", color: "var(--text-dark)" }}
+              style={{
+                border: "1px solid var(--border)",
+                backgroundColor: "#fff",
+                color: "var(--text-dark)",
+              }}
             >
               {assignment.progress ?? "—"}
               {typeof assignment.progress === "number" ? "%" : ""}
@@ -242,7 +303,13 @@ function ReviewModal({ assignment, onClose, onDecision }) {
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label style={{ fontWeight: 600, color: "var(--text-dark)", fontSize: "0.875rem" }}>
+            <Form.Label
+              style={{
+                fontWeight: 600,
+                color: "var(--text-dark)",
+                fontSize: "0.875rem",
+              }}
+            >
               Evidence / Notes
             </Form.Label>
             <div
@@ -268,7 +335,13 @@ function ReviewModal({ assignment, onClose, onDecision }) {
 
           {/* Manager Comment */}
           <Form.Group className="mb-3">
-            <Form.Label style={{ fontWeight: 600, color: "var(--text-dark)", fontSize: "0.875rem" }}>
+            <Form.Label
+              style={{
+                fontWeight: 600,
+                color: "var(--text-dark)",
+                fontSize: "0.875rem",
+              }}
+            >
               Manager Comment
             </Form.Label>
             <Form.Control
@@ -278,7 +351,10 @@ function ReviewModal({ assignment, onClose, onDecision }) {
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               style={{ borderColor: "var(--border)", fontSize: "0.875rem" }}
-              disabled={assignment.status === "approved" || assignment.status === "rejected"}
+              disabled={
+                assignment.status === "approved" ||
+                assignment.status === "rejected"
+              }
             />
           </Form.Group>
 
@@ -286,19 +362,32 @@ function ReviewModal({ assignment, onClose, onDecision }) {
           {assignment.status === "submitted" && (
             <>
               {confirmAction ? (
-                <Alert variant={confirmAction === "approved" ? "success" : "danger"} className="py-2">
+                <Alert
+                  variant={confirmAction === "approved" ? "success" : "danger"}
+                  className="py-2"
+                >
                   <div className="mb-2" style={{ fontSize: "0.875rem" }}>
-                    Confirm <strong>{confirmAction === "approved" ? "Approve" : "Reject"}</strong> this submission?
+                    Confirm{" "}
+                    <strong>
+                      {confirmAction === "approved" ? "Approve" : "Reject"}
+                    </strong>{" "}
+                    this submission?
                   </div>
                   <div className="d-flex gap-2">
                     <Button
                       size="sm"
-                      variant={confirmAction === "approved" ? "success" : "danger"}
+                      variant={
+                        confirmAction === "approved" ? "success" : "danger"
+                      }
                       onClick={() => handleDecision(confirmAction)}
                     >
                       Yes, {confirmAction === "approved" ? "Approve" : "Reject"}
                     </Button>
-                    <Button size="sm" variant="light" onClick={() => setConfirmAction(null)}>
+                    <Button
+                      size="sm"
+                      variant="light"
+                      onClick={() => setConfirmAction(null)}
+                    >
                       Cancel
                     </Button>
                   </div>
@@ -345,13 +434,23 @@ function AssignmentCard({ assignment, onReview }) {
         boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
         transition: "box-shadow 0.2s",
       }}
-      onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.12)")}
-      onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)")}
+      onMouseEnter={(e) =>
+        (e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.12)")
+      }
+      onMouseLeave={(e) =>
+        (e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)")
+      }
     >
       <Card.Body className="p-3">
         <div className="d-flex justify-content-between align-items-start mb-2">
           <div>
-            <div style={{ fontWeight: 700, color: "var(--text-dark)", fontSize: "0.95rem" }}>
+            <div
+              style={{
+                fontWeight: 700,
+                color: "var(--text-dark)",
+                fontSize: "0.95rem",
+              }}
+            >
               {assignment.kpiTitle}
             </div>
             <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
@@ -361,9 +460,22 @@ function AssignmentCard({ assignment, onReview }) {
           <StatusBadge status={assignment.status} />
         </div>
 
-        <div className="d-flex gap-3 mb-3" style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>
-          <span>Target: <strong style={{ color: "var(--text-dark)" }}>{assignment.kpiTarget}%</strong></span>
-          <span>Deadline: <strong style={{ color: "var(--text-dark)" }}>{assignment.kpiDeadline}</strong></span>
+        <div
+          className="d-flex gap-3 mb-3"
+          style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}
+        >
+          <span>
+            Target:{" "}
+            <strong style={{ color: "var(--text-dark)" }}>
+              {assignment.kpiTarget}%
+            </strong>
+          </span>
+          <span>
+            Deadline:{" "}
+            <strong style={{ color: "var(--text-dark)" }}>
+              {assignment.kpiDeadline}
+            </strong>
+          </span>
           {assignment.progress !== null && (
             <span>
               Progress:{" "}
@@ -400,7 +512,11 @@ function AssignmentCard({ assignment, onReview }) {
             size="sm"
             variant={isActionable ? "primary" : "outline-secondary"}
             onClick={() => onReview(assignment)}
-            style={isActionable ? {} : { borderColor: "var(--border)", color: "var(--text-muted)" }}
+            style={
+              isActionable
+                ? {}
+                : { borderColor: "var(--border)", color: "var(--text-muted)" }
+            }
           >
             {isActionable ? "Review Submission" : "View Details"}
           </Button>
@@ -424,7 +540,9 @@ export default function KPIAssignment() {
 
   const handleDecision = (id, status, comment) => {
     setAssignments((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, status, managerComment: comment } : a))
+      prev.map((a) =>
+        a.id === id ? { ...a, status, managerComment: comment } : a,
+      ),
     );
   };
 
@@ -437,11 +555,11 @@ export default function KPIAssignment() {
   };
 
   const tabList = [
-    { key: "all",       label: "All" },
-    { key: "pending",   label: "Pending" },
+    { key: "all", label: "All" },
+    { key: "pending", label: "Pending" },
     { key: "submitted", label: "Submitted" },
-    { key: "approved",  label: "Approved" },
-    { key: "rejected",  label: "Rejected" },
+    { key: "approved", label: "Approved" },
+    { key: "rejected", label: "Rejected" },
   ];
 
   // Summary counts
@@ -453,14 +571,25 @@ export default function KPIAssignment() {
 
   return (
     <Container className="py-4" style={{ maxWidth: 860 }}>
-
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h4 style={{ color: "var(--peach-dark)", fontWeight: 700, marginBottom: 2 }}>
+          <h4
+            style={{
+              color: "var(--peach-dark)",
+              fontWeight: 700,
+              marginBottom: 2,
+            }}
+          >
             KPI Assignment & Verification
           </h4>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.875rem", margin: 0 }}>
+          <p
+            style={{
+              color: "var(--text-muted)",
+              fontSize: "0.875rem",
+              margin: 0,
+            }}
+          >
             Assign KPIs to staff, review submissions, and approve results.
           </p>
         </div>
@@ -472,9 +601,17 @@ export default function KPIAssignment() {
       {/* Summary Cards */}
       <Row className="g-3 mb-4">
         {[
-          { label: "Awaiting Review", value: counts.submitted, color: "var(--peach-dark)" },
-          { label: "Approved",        value: counts.approved,  color: "var(--success)" },
-          { label: "Pending",         value: counts.pending,   color: "var(--warning)" },
+          {
+            label: "Awaiting Review",
+            value: counts.submitted,
+            color: "var(--peach-dark)",
+          },
+          {
+            label: "Approved",
+            value: counts.approved,
+            color: "var(--success)",
+          },
+          { label: "Pending", value: counts.pending, color: "var(--warning)" },
         ].map(({ label, value, color }) => (
           <Col xs={4} key={label}>
             <Card
@@ -485,8 +622,18 @@ export default function KPIAssignment() {
                 boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
               }}
             >
-              <div style={{ fontSize: "1.75rem", fontWeight: 800, color }}>{value}</div>
-              <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: 2 }}>{label}</div>
+              <div style={{ fontSize: "1.75rem", fontWeight: 800, color }}>
+                {value}
+              </div>
+              <div
+                style={{
+                  fontSize: "0.75rem",
+                  color: "var(--text-muted)",
+                  marginTop: 2,
+                }}
+              >
+                {label}
+              </div>
             </Card>
           </Col>
         ))}
@@ -508,8 +655,10 @@ export default function KPIAssignment() {
               borderRadius: 20,
               fontSize: "0.82rem",
               fontWeight: activeTab === key ? 700 : 400,
-              color: activeTab === key ? "var(--text-light)" : "var(--text-muted)",
-              backgroundColor: activeTab === key ? "var(--peach-dark)" : "transparent",
+              color:
+                activeTab === key ? "var(--text-light)" : "var(--text-muted)",
+              backgroundColor:
+                activeTab === key ? "var(--peach-dark)" : "transparent",
               cursor: "pointer",
               transition: "all 0.15s",
             }}
@@ -519,7 +668,10 @@ export default function KPIAssignment() {
               <span
                 style={{
                   marginLeft: 6,
-                  backgroundColor: activeTab === key ? "rgba(255,255,255,0.3)" : "var(--peach-light)",
+                  backgroundColor:
+                    activeTab === key
+                      ? "rgba(255,255,255,0.3)"
+                      : "var(--peach-light)",
                   color: activeTab === key ? "#fff" : "var(--peach-deep)",
                   borderRadius: 10,
                   padding: "1px 6px",
