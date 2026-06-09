@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, Row, Col, Card, Form, Button, Modal } from "react-bootstrap";
-import { deleteUserAccount } from "../services/userService";
+import { deleteUserAccount, changeUserPassword } from "../services/userService";
 
 function Profile() {
   const navigate = useNavigate();
   const [user, setUser] = useState({
-    //Use mock data for example
     fullName: "Alif Hafiz bin Danish",
     email: "alif@gmail.com",
     role: "Manager",
@@ -16,9 +15,15 @@ function Profile() {
   const [hoverBtn, setHoverBtn] = useState(null);
   const roleBadgeClass = user.role === "Manager" ? "bg-primary" : "bg-secondary";
 
-  // New State for Deletion Modal
+  // State for Deletion Modal
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [password, setPassword] = useState("");
+
+  // State for Password Change Modal
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -27,14 +32,33 @@ function Profile() {
 
   const toggleEditing = () => setIsEditing((prev) => !prev);
 
-  // Updated Delete Handler
+  // Delete Handler
   const handleDeleteAccount = async () => {
     try {
       await deleteUserAccount(password);
       setShowDeleteModal(false);
-      navigate("/"); // Redirect home after successful deletion
+      navigate("/"); 
     } catch (error) {
       alert("Error deleting account: " + error.message);
+    }
+  };
+
+  // Change Password Handler
+  const handlePasswordSubmit = async () => {
+    if (newPassword !== confirmPassword) {
+      alert("New passwords do not match. Please try again.");
+      return;
+    }
+    
+    try {
+      await changeUserPassword(currentPassword, newPassword);
+      alert("Password updated successfully.");
+      setShowPasswordModal(false);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      alert("Error updating password: " + error.message);
     }
   };
 
@@ -217,16 +241,26 @@ function Profile() {
                 )}
               </Form.Group>
 
+              {/* Both buttons now conditionally render only when isEditing is true */}
               {isEditing && (
-                <Button
-                  type="button"
-                  variant="primary"
-                  className="w-100"
-                  onClick={toggleEditing}
-                >
-                  Save Changes
-                </Button>
+                <div className="d-grid gap-2 mt-4">
+                  <Button
+                    type="button"
+                    variant="primary"
+                    onClick={toggleEditing}
+                  >
+                    Save Changes
+                  </Button>
+                  
+                  <Button 
+                    variant="outline-secondary" 
+                    onClick={() => setShowPasswordModal(true)}
+                  >
+                    Change Password
+                  </Button>
+                </div>
               )}
+
             </Card.Body>
           </Card>
         </Col>
@@ -253,6 +287,44 @@ function Profile() {
           <Button variant="danger" onClick={handleDeleteAccount}>Delete Account</Button>
         </Modal.Footer>
       </Modal>
+
+      {/* Change Password Modal */}
+      <Modal show={showPasswordModal} onHide={() => setShowPasswordModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Change Password</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group className="mb-3">
+            <Form.Label>Current Password</Form.Label>
+            <Form.Control 
+              type="password" 
+              value={currentPassword} 
+              onChange={(e) => setCurrentPassword(e.target.value)} 
+            />
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>New Password</Form.Label>
+            <Form.Control 
+              type="password" 
+              value={newPassword} 
+              onChange={(e) => setNewPassword(e.target.value)} 
+            />
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>Confirm New Password</Form.Label>
+            <Form.Control 
+              type="password" 
+              value={confirmPassword} 
+              onChange={(e) => setConfirmPassword(e.target.value)} 
+            />
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowPasswordModal(false)}>Cancel</Button>
+          <Button variant="primary" onClick={handlePasswordSubmit}>Update Password</Button>
+        </Modal.Footer>
+      </Modal>
+
     </Container>
   );
 }
