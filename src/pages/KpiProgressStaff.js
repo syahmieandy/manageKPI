@@ -177,14 +177,14 @@ function KpiProgressStaff() {
                   Submit Evidence
                 </button>
 
-                {/* YOUR BADGE (FIXED + INCLUDED PROPERLY) */}
+                {/* Show badge if submitted */}
                 {(kpi.evidenceText || kpi.evidenceFileUrl) && (
                   <span className="badge bg-success mt-2">
                     Evidence Submitted
                   </span>
                 )}
 
-                {/* EVIDENCE DISPLAY */}
+                {/* Evidence display */}
                 <div className="mt-3">
 
                   {kpi.evidenceText && (
