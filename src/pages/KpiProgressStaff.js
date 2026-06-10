@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { getKpis, updateKpi } from "../services/kpiService";
+import { uploadEvidenceFile } from "../services/storageService";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -8,41 +9,35 @@ function KpiProgressStaff() {
   const { user } = useContext(AuthContext);
 
   const [assignedKpis, setAssignedKpis] = useState([]);
-  const [evidenceMap, setEvidenceMap] = useState({});
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // Fetching kpi from firebase
+  const [fileMap, setFileMap] = useState({});
+  const [evidenceMap, setEvidenceMap] = useState({});
+
+  // FETCH KPIS
   useEffect(() => {
     const fetchKpis = async () => {
       if (!user) return;
 
       setLoading(true);
-
       const data = await getKpis();
-
-      const cleaned = data.map((kpi) => {
-        const { evidence, ...rest } = kpi;
-        return rest;
-      });
-
-      setAssignedKpis(cleaned);
-
+      setAssignedKpis(data);
       setLoading(false);
     };
 
     fetchKpis();
   }, [user]);
 
-  // Status part of kpiprogress
+  // STATUS
   const getStatus = (kpi) => {
-    if (kpi.status) return kpi.status;
     if (kpi.progress === 100) return "Completed";
+    if (kpi.progress > 0 && kpi.evidenceText) return "Submitted";
     if (kpi.progress > 0) return "In Progress";
     return "Not Started";
   };
 
-  // Evidence url check of kpiprogress
+  // VALIDATION
   const isValidUrl = (value) => {
     try {
       new URL(value);
@@ -52,59 +47,80 @@ function KpiProgressStaff() {
     }
   };
 
-  // Progress update of kpiprogress
-  const ProgressUpdate = async (id, value) => {
-    const kpi = assignedKpis.find((k) => k.id === id);
-
-    const updated = {
-      ...kpi,
-      progress: value,
-    };
-
-    await updateKpi(id, updated);
+  // PROGRESS UPDATE
+  const updateProgress = (id, value) => {
+    setAssignedKpis((prev) =>
+      prev.map((kpi) =>
+        kpi.id === id ? { ...kpi, progress: value } : kpi
+      )
+    );
   };
 
-  // Evidence handling of kpiprogress
+  // FILE CHANGE
+  const handleFileChange = (id, file) => {
+    setFileMap((prev) => ({
+      ...prev,
+      [id]: file,
+    }));
+  };
+
+  // TEXT CHANGE
   const handleEvidenceChange = (id, value) => {
     setEvidenceMap((prev) => ({
       ...prev,
       [id]: value,
     }));
   };
-
-  // Submit part of kpiprogress
+// Submit kpi part
   const KpiSubmit = async (id) => {
-    const kpi = assignedKpis.find((k) => k.id === id);
-    const evidence = evidenceMap[id];
+  const kpi = assignedKpis.find((k) => k.id === id);
 
-    if (!evidence || !evidence.trim()) {
-      setMessage("Please enter evidence before submitting.");
-      setTimeout(() => setMessage(""), 2500);
-      return;
-    }
+  const text = evidenceMap[id];
+  const file = fileMap[id];
 
-    if (!isValidUrl(evidence)) {
-      setMessage("Invalid URL format.");
-      setTimeout(() => setMessage(""), 2500);
-      return;
-    }
+  let fileUrl = null;
 
-    const updated = {
-      ...kpi,
-      status: kpi.progress === 100 ? "Completed" : "Submitted",
-      progress: kpi.progress,
-    };
+  if (file) {
+    fileUrl = await uploadEvidenceFile(file, id);
+  }
 
-    await updateKpi(id, updated);
-
-    setEvidenceMap((prev) => ({
-      ...prev,
-      [id]: "",
-    }));
-
-    setMessage("✔ KPI submitted successfully");
+  if (!text && !fileUrl) {
+    setMessage("Please provide evidence.");
     setTimeout(() => setMessage(""), 2500);
+    return;
+  }
+
+  const updated = {
+    ...kpi,
+    progress: kpi.progress,
+    status: kpi.progress === 100 ? "Completed" : "Submitted",
+    evidenceText: text || "",
+    evidenceFileUrl: fileUrl || "",
   };
+
+  await updateKpi(id, updated);
+
+  // UI update
+  setAssignedKpis((prev) =>
+    prev.map((item) =>
+      item.id === id
+        ? {
+            ...item,
+            evidenceText: text || "",
+            evidenceFileUrl: fileUrl || "",
+            status: updated.status,
+          }
+        : item
+    )
+  );
+
+  // clear inputs
+  setEvidenceMap((prev) => ({ ...prev, [id]: "" }));
+  setFileMap((prev) => ({ ...prev, [id]: null }));
+
+  setMessage("✔ KPI submitted successfully");
+  setTimeout(() => setMessage(""), 2500);
+};
 
   if (loading) {
     return (
@@ -114,14 +130,11 @@ function KpiProgressStaff() {
     );
   }
 
-  // All UI Code
   return (
     <div className="container mt-4">
       <h2>KPI Progress Page</h2>
 
-      {message && (
-        <div className="alert alert-info">{message}</div>
-      )}
+      {message && <div className="alert alert-info">{message}</div>}
 
       <div className="row">
         {assignedKpis.map((kpi) => (
@@ -137,33 +150,29 @@ function KpiProgressStaff() {
 
                 <input
                   type="range"
-                  className="form-range"
                   min="0"
                   max="100"
                   value={kpi.progress || 0}
-                  onChange={(e) => {
-                    const value = Number(e.target.value);
-
-                    setAssignedKpis((prev) =>
-                      prev.map((item) =>
-                        item.id === kpi.id
-                          ? { ...item, progress: value }
-                          : item
-                      )
-                    );
-                  }}
-                  onMouseUp={() =>
-                    ProgressUpdate(kpi.id, kpi.progress)
+                  onChange={(e) =>
+                    updateProgress(kpi.id, Number(e.target.value))
                   }
                 />
 
                 <input
                   type="text"
                   className="form-control mt-2"
-                  placeholder="Evidence link"
+                  placeholder="Evidence link (optional)"
                   value={evidenceMap[kpi.id] || ""}
                   onChange={(e) =>
                     handleEvidenceChange(kpi.id, e.target.value)
+                  }
+                />
+
+                <input
+                  type="file"
+                  className="form-control mt-2"
+                  onChange={(e) =>
+                    handleFileChange(kpi.id, e.target.files[0])
                   }
                 />
 
@@ -173,6 +182,36 @@ function KpiProgressStaff() {
                 >
                   Submit Evidence
                 </button>
+
+                {/* YOUR BADGE (FIXED + INCLUDED PROPERLY) */}
+                {(kpi.evidenceText || kpi.evidenceFileUrl) && (
+                  <span className="badge bg-success mt-2">
+                    Evidence Submitted
+                  </span>
+                )}
+
+                {/* EVIDENCE DISPLAY */}
+                <div className="mt-3">
+
+                  {kpi.evidenceText && (
+                    <div>
+                      <strong>Link:</strong>{" "}
+                      <a href={kpi.evidenceText} target="_blank">
+                        Open
+                      </a>
+                    </div>
+                  )}
+
+                  {kpi.evidenceFileUrl && (
+                    <div>
+                      <strong>File:</strong>{" "}
+                      <a href={kpi.evidenceFileUrl} target="_blank">
+                        View
+                      </a>
+                    </div>
+                  )}
+
+                </div>
 
               </div>
             </div>
