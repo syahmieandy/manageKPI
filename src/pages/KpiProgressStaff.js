@@ -15,7 +15,7 @@ function KpiProgressStaff() {
   const [fileMap, setFileMap] = useState({});
   const [evidenceMap, setEvidenceMap] = useState({});
 
-  // FETCH KPIS
+  // Fetch kpis
   useEffect(() => {
     const fetchKpis = async () => {
       if (!user) return;
@@ -28,16 +28,14 @@ function KpiProgressStaff() {
 
     fetchKpis();
   }, [user]);
-
-  // STATUS
+  // Status part
   const getStatus = (kpi) => {
     if (kpi.progress === 100) return "Completed";
     if (kpi.progress > 0 && kpi.evidenceText) return "Submitted";
     if (kpi.progress > 0) return "In Progress";
     return "Not Started";
   };
-
-  // VALIDATION
+  // Url validation part
   const isValidUrl = (value) => {
     try {
       new URL(value);
@@ -46,8 +44,7 @@ function KpiProgressStaff() {
       return false;
     }
   };
-
-  // PROGRESS UPDATE
+  // Progress update part
   const updateProgress = (id, value) => {
     setAssignedKpis((prev) =>
       prev.map((kpi) =>
@@ -55,16 +52,14 @@ function KpiProgressStaff() {
       )
     );
   };
-
-  // FILE CHANGE
+  // File input handling part
   const handleFileChange = (id, file) => {
     setFileMap((prev) => ({
       ...prev,
       [id]: file,
     }));
   };
-
-  // TEXT CHANGE
+  // Text input handling part
   const handleEvidenceChange = (id, value) => {
     setEvidenceMap((prev) => ({
       ...prev,
@@ -100,7 +95,7 @@ function KpiProgressStaff() {
 
   await updateKpi(id, updated);
 
-  // UI update
+  // Updating state part
   setAssignedKpis((prev) =>
     prev.map((item) =>
       item.id === id
@@ -114,7 +109,6 @@ function KpiProgressStaff() {
     )
   );
 
-  // clear inputs
   setEvidenceMap((prev) => ({ ...prev, [id]: "" }));
   setFileMap((prev) => ({ ...prev, [id]: null }));
 
