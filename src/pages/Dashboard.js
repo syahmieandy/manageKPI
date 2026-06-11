@@ -13,8 +13,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-
-
 export default function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -22,15 +20,19 @@ export default function Dashboard() {
 
   useEffect(() => {
     const kpiCollectionRef = collection(db, "kpis");
-    const unsubscribe = onSnapshot(kpiCollectionRef, (snapshot) => {
-      const liveData = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setKpis(liveData);
-    }, (error) => {
-      console.error("Real-time snapshot synchronization failed:", error);
-    });
+    const unsubscribe = onSnapshot(
+      kpiCollectionRef,
+      (snapshot) => {
+        const liveData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setKpis(liveData);
+      },
+      (error) => {
+        console.error("Real-time snapshot synchronization failed:", error);
+      },
+    );
 
     return () => unsubscribe();
   }, []);
@@ -66,12 +68,7 @@ export default function Dashboard() {
             <div className="card text-center shadow-sm">
               <div className="card-body">
                 <h6 className="text-muted">Completed</h6>
-                <h2>
-                  {
-                    kpis.filter((k) => k.status === "Submitted")
-                      .length
-                  }
-                </h2>
+                <h2>{kpis.filter((k) => k.status === "Submitted").length}</h2>
               </div>
             </div>
           </div>
@@ -80,7 +77,8 @@ export default function Dashboard() {
               <div className="card-body">
                 <h6 className="text-muted">In Progress</h6>
                 <h2>
-                  {kpis.length - kpis.filter((k) => k.status === "Submitted").length}
+                  {kpis.length -
+                    kpis.filter((k) => k.status === "Submitted").length}
                 </h2>
               </div>
             </div>
@@ -106,7 +104,7 @@ export default function Dashboard() {
   // 2. Staff View
   if (user?.role === "staff") {
     const myAssignedKpis = kpis.filter((k) => k.assignedToUid === user?.uid);
-    
+
     return (
       <div className="dashboard-container p-4">
         <div className="d-flex gap-2 mb-4">

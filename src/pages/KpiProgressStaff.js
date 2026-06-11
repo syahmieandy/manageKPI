@@ -47,9 +47,7 @@ function KpiProgressStaff() {
   // Progress update part
   const updateProgress = (id, value) => {
     setAssignedKpis((prev) =>
-      prev.map((kpi) =>
-        kpi.id === id ? { ...kpi, progress: value } : kpi
-      )
+      prev.map((kpi) => (kpi.id === id ? { ...kpi, progress: value } : kpi)),
     );
   };
   // File input handling part
@@ -66,55 +64,55 @@ function KpiProgressStaff() {
       [id]: value,
     }));
   };
-// Submit kpi part
+  // Submit kpi part
   const KpiSubmit = async (id) => {
-  const kpi = assignedKpis.find((k) => k.id === id);
+    const kpi = assignedKpis.find((k) => k.id === id);
 
-  const text = evidenceMap[id];
-  const file = fileMap[id];
+    const text = evidenceMap[id];
+    const file = fileMap[id];
 
-  let fileUrl = null;
+    let fileUrl = null;
 
-  if (file) {
-    fileUrl = await uploadEvidenceFile(file, id);
-  }
+    if (file) {
+      fileUrl = await uploadEvidenceFile(file, id);
+    }
 
-  if (!text && !fileUrl) {
-    setMessage("Please provide evidence.");
+    if (!text && !fileUrl) {
+      setMessage("Please provide evidence.");
+      setTimeout(() => setMessage(""), 2500);
+      return;
+    }
+
+    const updated = {
+      ...kpi,
+      progress: kpi.progress,
+      status: kpi.progress === 100 ? "Completed" : "Submitted",
+      evidenceText: text || "",
+      evidenceFileUrl: fileUrl || "",
+    };
+
+    await updateKpi(id, updated);
+
+    // Updating state part
+    setAssignedKpis((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              evidenceText: text || "",
+              evidenceFileUrl: fileUrl || "",
+              status: updated.status,
+            }
+          : item,
+      ),
+    );
+
+    setEvidenceMap((prev) => ({ ...prev, [id]: "" }));
+    setFileMap((prev) => ({ ...prev, [id]: null }));
+
+    setMessage("✔ KPI submitted successfully");
     setTimeout(() => setMessage(""), 2500);
-    return;
-  }
-
-  const updated = {
-    ...kpi,
-    progress: kpi.progress,
-    status: kpi.progress === 100 ? "Completed" : "Submitted",
-    evidenceText: text || "",
-    evidenceFileUrl: fileUrl || "",
   };
-
-  await updateKpi(id, updated);
-
-  // Updating state part
-  setAssignedKpis((prev) =>
-    prev.map((item) =>
-      item.id === id
-        ? {
-            ...item,
-            evidenceText: text || "",
-            evidenceFileUrl: fileUrl || "",
-            status: updated.status,
-          }
-        : item
-    )
-  );
-
-  setEvidenceMap((prev) => ({ ...prev, [id]: "" }));
-  setFileMap((prev) => ({ ...prev, [id]: null }));
-
-  setMessage("✔ KPI submitted successfully");
-  setTimeout(() => setMessage(""), 2500);
-};
 
   if (loading) {
     return (
@@ -135,7 +133,6 @@ function KpiProgressStaff() {
           <div className="col-md-6 mb-3" key={kpi.id}>
             <div className="card shadow-sm">
               <div className="card-body">
-
                 <h5>{kpi.title}</h5>
 
                 <p>Status: {getStatus(kpi)}</p>
@@ -157,17 +154,13 @@ function KpiProgressStaff() {
                   className="form-control mt-2"
                   placeholder="Evidence link (optional)"
                   value={evidenceMap[kpi.id] || ""}
-                  onChange={(e) =>
-                    handleEvidenceChange(kpi.id, e.target.value)
-                  }
+                  onChange={(e) => handleEvidenceChange(kpi.id, e.target.value)}
                 />
 
                 <input
                   type="file"
                   className="form-control mt-2"
-                  onChange={(e) =>
-                    handleFileChange(kpi.id, e.target.files[0])
-                  }
+                  onChange={(e) => handleFileChange(kpi.id, e.target.files[0])}
                 />
 
                 <button
@@ -186,7 +179,6 @@ function KpiProgressStaff() {
 
                 {/* Evidence display */}
                 <div className="mt-3">
-
                   {kpi.evidenceText && (
                     <div>
                       <strong>Link:</strong>{" "}
@@ -204,9 +196,7 @@ function KpiProgressStaff() {
                       </a>
                     </div>
                   )}
-
                 </div>
-
               </div>
             </div>
           </div>
