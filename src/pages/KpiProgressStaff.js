@@ -1,188 +1,212 @@
-import React, { useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
+import { AuthContext } from "../context/AuthContext";
+import { getKpis, updateKpi } from "../services/kpiService";
+import { uploadEvidenceFile } from "../services/storageService";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
 function KpiProgressStaff() {
-  const [assignedKpis, setAssignedKpis] = useState([
-    // for now, using temporary sample data because backend is not ready
-    {
-      id: 1,
-      title: "Revenue Growth",
-      description: "Increase monthly recurring revenue",
-      deadline: "2026-06-30",
-      progress: 25,
-      evidence: "",
-      status: "In Progress",
-    },
-    {
-      id: 2,
-      title: "Customer Retention",
-      description: "Improve customer retention rate",
-      deadline: "2026-09-30",
-      progress: 60,
-      evidence: "",
-      status: "In Progress",
-    },
-    {
-      id: 3,
-      title: "Website Traffic",
-      description: "Increase organic traffic",
-      deadline: "2026-12-31",
-      progress: 10,
-      evidence: "",
-      status: "In Progress",
-    },
-  ]);
+  const { user } = useContext(AuthContext);
 
+  const [assignedKpis, setAssignedKpis] = useState([]);
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const ProgressUpdate = (id, newProgress) => {
-    const progressNumber = Number(newProgress);
+  const [fileMap, setFileMap] = useState({});
+  const [evidenceMap, setEvidenceMap] = useState({});
 
-    // to prevent invalid values like below 0 or above 100
-    if (progressNumber < 0 || progressNumber > 100) {
-      return;
+  // Fetch kpis
+  useEffect(() => {
+    const fetchKpis = async () => {
+      if (!user) return;
+
+      setLoading(true);
+      const data = await getKpis();
+      setAssignedKpis(data);
+      setLoading(false);
+    };
+
+    fetchKpis();
+  }, [user]);
+  // Status part
+  const getStatus = (kpi) => {
+    if (kpi.progress === 100) return "Completed";
+    if (kpi.progress > 0 && kpi.evidenceText) return "Submitted";
+    if (kpi.progress > 0) return "In Progress";
+    return "Not Started";
+  };
+  // Url validation part
+  const isValidUrl = (value) => {
+    try {
+      new URL(value);
+      return true;
+    } catch {
+      return false;
     }
-
-    setAssignedKpis(
-      assignedKpis.map((kpi) => {
-        if (kpi.id === id) {
-          return {
-            ...kpi,
-            progress: progressNumber,
-            status:
-              kpi.status === "Completed with proof"
-                ? "Completed with proof"
-                : kpi.status === "Submitted"
-                  ? "Submitted"
-                  : progressNumber === 100
-                    ? "Completed"
-                    : "In Progress",
-          };
-        }
-        return kpi;
-      }),
+  };
+  // Progress update part
+  const updateProgress = (id, value) => {
+    setAssignedKpis((prev) =>
+      prev.map((kpi) =>
+        kpi.id === id ? { ...kpi, progress: value } : kpi
+      )
     );
   };
+  // File input handling part
+  const handleFileChange = (id, file) => {
+    setFileMap((prev) => ({
+      ...prev,
+      [id]: file,
+    }));
+  };
+  // Text input handling part
+  const handleEvidenceChange = (id, value) => {
+    setEvidenceMap((prev) => ({
+      ...prev,
+      [id]: value,
+    }));
+  };
+// Submit kpi part
+  const KpiSubmit = async (id) => {
+  const kpi = assignedKpis.find((k) => k.id === id);
 
-  const EvidenceUpdate = (id, evidenceValue) => {
-    setAssignedKpis(
-      assignedKpis.map((kpi) => {
-        if (kpi.id === id) {
-          return {
-            ...kpi,
-            evidence: evidenceValue,
-          };
-        }
-        return kpi;
-      }),
-    );
+  const text = evidenceMap[id];
+  const file = fileMap[id];
+
+  let fileUrl = null;
+
+  if (file) {
+    fileUrl = await uploadEvidenceFile(file, id);
+  }
+
+  if (!text && !fileUrl) {
+    setMessage("Please provide evidence.");
+    setTimeout(() => setMessage(""), 2500);
+    return;
+  }
+
+  const updated = {
+    ...kpi,
+    progress: kpi.progress,
+    status: kpi.progress === 100 ? "Completed" : "Submitted",
+    evidenceText: text || "",
+    evidenceFileUrl: fileUrl || "",
   };
 
-  const KpiSubmit = (id) => {
-    const selectedKpi = assignedKpis.find((kpi) => kpi.id === id);
+  await updateKpi(id, updated);
 
-    if (!selectedKpi.evidence.trim()) {
-      alert("Enter evidence before submitting.");
-      return;
-    }
-    setAssignedKpis(
-      assignedKpis.map((kpi) => {
-        if (kpi.id === id) {
-          return {
-            ...kpi,
-            status:
-              selectedKpi.progress === 100
-                ? "Completed with proof"
-                : "Submitted",
-          };
-        }
-        return kpi;
-      }),
+  // Updating state part
+  setAssignedKpis((prev) =>
+    prev.map((item) =>
+      item.id === id
+        ? {
+            ...item,
+            evidenceText: text || "",
+            evidenceFileUrl: fileUrl || "",
+            status: updated.status,
+          }
+        : item
+    )
+  );
+
+  setEvidenceMap((prev) => ({ ...prev, [id]: "" }));
+  setFileMap((prev) => ({ ...prev, [id]: null }));
+
+  setMessage("✔ KPI submitted successfully");
+  setTimeout(() => setMessage(""), 2500);
+};
+
+  if (loading) {
+    return (
+      <div className="container mt-5 text-center">
+        <div className="spinner-border text-primary"></div>
+      </div>
     );
-    setMessage("KPI submitted successfully!");
-    setTimeout(() => {
-      setMessage("");
-    }, 3000);
-  };
+  }
 
   return (
     <div className="container mt-4">
       <h2>KPI Progress Page</h2>
-      <p className="text-muted">
-        Staff can check assigned KPIs, update their progress, and submit
-        evidence.
-      </p>
 
-      {message && <div className="alert alert-success">{message}</div>}
+      {message && <div className="alert alert-info">{message}</div>}
 
       <div className="row">
         {assignedKpis.map((kpi) => (
           <div className="col-md-6 mb-3" key={kpi.id}>
             <div className="card shadow-sm">
               <div className="card-body">
-                <h5 className="card-title">{kpi.title}</h5>
-                <p className="card-text">{kpi.description}</p>
 
-                <p>
-                  <strong>Deadline:</strong> {kpi.deadline}
-                </p>
+                <h5>{kpi.title}</h5>
 
-                <p>
-                  <strong>Status:</strong>{" "}
-                  <span
-                    className={
-                      kpi.status === "Completed with proof"
-                        ? "badge bg-success"
-                        : kpi.status === "Completed"
-                          ? "badge bg-info text-dark"
-                          : kpi.status === "Submitted"
-                            ? "badge bg-secondary"
-                            : "badge bg-primary"
-                    }
-                  >
-                    {kpi.status}
-                  </span>
-                </p>
+                <p>Status: {getStatus(kpi)}</p>
 
-                <label className="form-label">Progress: {kpi.progress}%</label>
+                <label>Progress: {kpi.progress}%</label>
 
                 <input
                   type="range"
-                  className="form-range"
                   min="0"
                   max="100"
-                  value={kpi.progress}
-                  onChange={(event) =>
-                    ProgressUpdate(kpi.id, event.target.value)
+                  value={kpi.progress || 0}
+                  onChange={(e) =>
+                    updateProgress(kpi.id, Number(e.target.value))
                   }
                 />
 
-                <label className="form-label">Evidence Link</label>
                 <input
                   type="text"
-                  className="form-control mb-3"
-                  placeholder="Paste evidence link here"
-                  value={kpi.evidence}
-                  onChange={(event) =>
-                    EvidenceUpdate(kpi.id, event.target.value)
+                  className="form-control mt-2"
+                  placeholder="Evidence link (optional)"
+                  value={evidenceMap[kpi.id] || ""}
+                  onChange={(e) =>
+                    handleEvidenceChange(kpi.id, e.target.value)
+                  }
+                />
+
+                <input
+                  type="file"
+                  className="form-control mt-2"
+                  onChange={(e) =>
+                    handleFileChange(kpi.id, e.target.files[0])
                   }
                 />
 
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-primary mt-2 w-100"
                   onClick={() => KpiSubmit(kpi.id)}
-                  disabled={
-                    kpi.status === "Submitted" ||
-                    kpi.status === "Completed with proof" ||
-                    !kpi.evidence.trim()
-                  }
                 >
-                  {kpi.status === "Submitted" ||
-                  kpi.status === "Completed with proof"
-                    ? "Submitted"
-                    : "Submit Evidence"}
+                  Submit Evidence
                 </button>
+
+                {/* Show badge if submitted */}
+                {(kpi.evidenceText || kpi.evidenceFileUrl) && (
+                  <span className="badge bg-success mt-2">
+                    Evidence Submitted
+                  </span>
+                )}
+
+                {/* Evidence display */}
+                <div className="mt-3">
+
+                  {kpi.evidenceText && (
+                    <div>
+                      <strong>Link:</strong>{" "}
+                      <a href={kpi.evidenceText} target="_blank">
+                        Open
+                      </a>
+                    </div>
+                  )}
+
+                  {kpi.evidenceFileUrl && (
+                    <div>
+                      <strong>File:</strong>{" "}
+                      <a href={kpi.evidenceFileUrl} target="_blank">
+                        View
+                      </a>
+                    </div>
+                  )}
+
+                </div>
+
               </div>
             </div>
           </div>
