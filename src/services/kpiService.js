@@ -41,7 +41,7 @@ export const getKpis = async () => {
 };
 
 export const getKpisByManager = async (managerUid) => {
-  const q = query(collection(db, COL), where("createdBy", "==", managerUid));
+  const q = query(collection(db, COL), where("createdByUid", "==", managerUid));
   const snap = await getDocs(q);
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 };
