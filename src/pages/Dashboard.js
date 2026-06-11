@@ -68,7 +68,7 @@ export default function Dashboard() {
                 <h6 className="text-muted">Completed</h6>
                 <h2>
                   {
-                    kpis.filter((k) => k.status === "Completed with proof")
+                    kpis.filter((k) => k.status === "Submitted")
                       .length
                   }
                 </h2>
@@ -80,7 +80,7 @@ export default function Dashboard() {
               <div className="card-body">
                 <h6 className="text-muted">In Progress</h6>
                 <h2>
-                  {kpis.filter((k) => k.status === "In Progress").length}
+                  {kpis.length - kpis.filter((k) => k.status === "Submitted").length}
                 </h2>
               </div>
             </div>
