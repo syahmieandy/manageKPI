@@ -4,11 +4,12 @@ import {
   Row,
   Col,
   Card,
-  Badge,
   Button,
   Form,
   Alert,
 } from "react-bootstrap";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../firebase/config";
 import CommonModal from "../components/CommonModal";
 import useAuth from "../hooks/useAuth";
 import { getKpisByManager } from "../services/kpiService";
@@ -16,31 +17,7 @@ import { getUsersByRole } from "../services/userService";
 import {
   createAssignment,
   subscribeAssignmentsByManager,
-  updateAssignment,
 } from "../services/assignmentService";
-
-// ─── Status helpers ───────────────────────────────────────────────────────────
-
-const STATUS_META = {
-  pending: { label: "Pending", bg: "warning", text: "dark" },
-  submitted: { label: "Submitted", bg: "info", text: "dark" },
-  approved: { label: "Approved", bg: "success", text: "light" },
-  rejected: { label: "Rejected", bg: "danger", text: "light" },
-};
-
-function StatusBadge({ status }) {
-  const meta = STATUS_META[status] || STATUS_META.pending;
-  return (
-    <Badge
-      bg={meta.bg}
-      text={meta.text}
-      className="px-2 py-1"
-      style={{ fontSize: "0.72rem", letterSpacing: "0.04em" }}
-    >
-      {meta.label}
-    </Badge>
-  );
-}
 
 // ─── Assign KPI Modal ─────────────────────────────────────────────────────────
 
@@ -99,6 +76,7 @@ function AssignKPIModal({ onClose, onAssign, managerUid, managerName, existingAs
     onAssign({
       kpiId: kpi.id,
       kpiTitle: kpi.title,
+      kpiDescription: kpi.description || "",
       kpiTarget: kpi.target,
       kpiDeadline: kpi.deadline,
       staffUid: staff.uid,
@@ -182,19 +160,11 @@ function AssignKPIModal({ onClose, onAssign, managerUid, managerName, existingAs
   );
 }
 
-// ─── Review Modal ───────────────────────────────────────────────────────────
+// ─── View Submission Modal ───────────────────────────────────────────────────
 
-function ReviewModal({ assignment, onClose, onDecision }) {
-  const [comment, setComment] = useState(assignment.managerComment || "");
-  const [confirmAction, setConfirmAction] = useState(null);
-
-  const handleDecision = (status) => {
-    onDecision(assignment.id, status, comment);
-    onClose();
-  };
-
+function ViewSubmissionModal({ assignment, onClose }) {
   return (
-    <CommonModal modalTitle={`Review: ${assignment.kpiTitle}`} onClose={onClose}>
+    <CommonModal modalTitle={`Submission: ${assignment.kpiTitle}`} onClose={onClose}>
       <div
         className="rounded p-3 mb-3"
         style={{
@@ -227,11 +197,13 @@ function ReviewModal({ assignment, onClose, onDecision }) {
                 letterSpacing: "0.05em",
               }}
             >
-              Status
+              Target
             </div>
-            <StatusBadge status={assignment.status} />
+            <div style={{ color: "var(--text-dark)" }}>
+              {assignment.kpiTarget}%
+            </div>
           </Col>
-          <Col xs={6}>
+          <Col xs={12}>
             <div
               style={{
                 fontSize: "0.72rem",
@@ -240,10 +212,10 @@ function ReviewModal({ assignment, onClose, onDecision }) {
                 letterSpacing: "0.05em",
               }}
             >
-              Target
+              Description
             </div>
-            <div style={{ color: "var(--text-dark)" }}>
-              {assignment.kpiTarget}%
+            <div style={{ color: "var(--text-dark)", fontSize: "0.875rem" }}>
+              {assignment.kpiDescription || "—"}
             </div>
           </Col>
           <Col xs={6}>
@@ -261,11 +233,35 @@ function ReviewModal({ assignment, onClose, onDecision }) {
               {assignment.kpiDeadline}
             </div>
           </Col>
+          <Col xs={6}>
+            <div
+              style={{
+                fontSize: "0.72rem",
+                color: "var(--text-muted)",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+              }}
+            >
+              Progress
+            </div>
+            <div
+              style={{
+                fontWeight: 600,
+                color:
+                  assignment.progress >= assignment.kpiTarget
+                    ? "var(--success)"
+                    : "var(--peach-deep)",
+              }}
+            >
+              {assignment.progress ?? 0}%
+            </div>
+          </Col>
         </Row>
       </div>
 
-      {assignment.status === "pending" ? (
-        <Alert variant="warning" className="py-2" style={{ fontSize: "0.875rem" }}>
+      {/* Submission Details */}
+      {!assignment.evidence && !assignment.evidenceFileUrl ? (
+        <Alert variant="info" className="py-2" style={{ fontSize: "0.875rem" }}>
           No submission yet from this staff member.
         </Alert>
       ) : (
@@ -278,7 +274,7 @@ function ReviewModal({ assignment, onClose, onDecision }) {
                 fontSize: "0.875rem",
               }}
             >
-              Progress Reported
+              Evidence Link
             </Form.Label>
             <div
               className="rounded p-2"
@@ -286,10 +282,16 @@ function ReviewModal({ assignment, onClose, onDecision }) {
                 border: "1px solid var(--border)",
                 backgroundColor: "#fff",
                 color: "var(--text-dark)",
+                fontSize: "0.875rem",
               }}
             >
-              {assignment.progress ?? "—"}
-              {typeof assignment.progress === "number" ? "%" : ""}
+              {assignment.evidence ? (
+                <a href={assignment.evidence} target="_blank" rel="noopener noreferrer">
+                  {assignment.evidence}
+                </a>
+              ) : (
+                "—"
+              )}
             </div>
           </Form.Group>
 
@@ -301,7 +303,7 @@ function ReviewModal({ assignment, onClose, onDecision }) {
                 fontSize: "0.875rem",
               }}
             >
-              Evidence / Notes
+              Evidence File
             </Form.Label>
             <div
               className="rounded p-2"
@@ -309,12 +311,16 @@ function ReviewModal({ assignment, onClose, onDecision }) {
                 border: "1px solid var(--border)",
                 backgroundColor: "#fff",
                 color: "var(--text-dark)",
-                minHeight: "72px",
                 fontSize: "0.875rem",
-                whiteSpace: "pre-wrap",
               }}
             >
-              {assignment.evidence || "—"}
+              {assignment.evidenceFileUrl ? (
+                <a href={assignment.evidenceFileUrl} target="_blank" rel="noopener noreferrer">
+                  View File
+                </a>
+              ) : (
+                "—"
+              )}
             </div>
           </Form.Group>
 
@@ -322,74 +328,6 @@ function ReviewModal({ assignment, onClose, onDecision }) {
             <p style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
               Submitted on {assignment.submittedAt}
             </p>
-          )}
-
-          <Form.Group className="mb-3">
-            <Form.Label
-              style={{
-                fontWeight: 600,
-                color: "var(--text-dark)",
-                fontSize: "0.875rem",
-              }}
-            >
-              Manager Comment
-            </Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={3}
-              placeholder="Add feedback for this staff member..."
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              style={{ borderColor: "var(--border)", fontSize: "0.875rem" }}
-              disabled={
-                assignment.status === "approved" || assignment.status === "rejected"
-              }
-            />
-          </Form.Group>
-
-          {assignment.status === "submitted" && (
-            <>
-              {confirmAction ? (
-                <Alert variant={confirmAction === "approved" ? "success" : "danger"} className="py-2">
-                  <div className="mb-2" style={{ fontSize: "0.875rem" }}>
-                    Confirm{" "}
-                    <strong>{confirmAction === "approved" ? "Approve" : "Reject"}</strong> this
-                    submission?
-                  </div>
-                  <div className="d-flex gap-2">
-                    <Button
-                      size="sm"
-                      variant={confirmAction === "approved" ? "success" : "danger"}
-                      onClick={() => handleDecision(confirmAction)}
-                    >
-                      Yes, {confirmAction === "approved" ? "Approve" : "Reject"}
-                    </Button>
-                    <Button size="sm" variant="light" onClick={() => setConfirmAction(null)}>
-                      Cancel
-                    </Button>
-                  </div>
-                </Alert>
-              ) : (
-                <div className="d-flex gap-2">
-                  <Button
-                    variant="success"
-                    size="sm"
-                    className="flex-fill"
-                    onClick={() => setConfirmAction("approved")}
-                  >
-                    ✓ Approve
-                  </Button>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    className="flex-fill"
-                    onClick={() => setConfirmAction("rejected")}
-                  >
-                    ✗ Reject
-                  </Button>
-                </div>
-              )}
-            </>
           )}
         </>
       )}
@@ -399,8 +337,8 @@ function ReviewModal({ assignment, onClose, onDecision }) {
 
 // ─── Assignment Card ──────────────────────────────────────────────────────────
 
-function AssignmentCard({ assignment, onReview }) {
-  const isActionable = assignment.status === "submitted";
+function AssignmentCard({ assignment, onViewSubmission }) {
+  const hasSubmission = assignment.evidence || assignment.evidenceFileUrl;
 
   return (
     <Card
@@ -426,9 +364,24 @@ function AssignmentCard({ assignment, onReview }) {
             >
               {assignment.kpiTitle}
             </div>
-            <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>{assignment.staffName}</div>
+            <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
+              Staff: {assignment.staffName}
+            </div>
           </div>
-          <StatusBadge status={assignment.status} />
+        </div>
+
+        <div
+          className="mb-2"
+          style={{
+            fontSize: "0.78rem",
+            color: "var(--text-muted)",
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+          }}
+        >
+          {assignment.kpiDescription || "No description"}
         </div>
 
         <div
@@ -443,49 +396,46 @@ function AssignmentCard({ assignment, onReview }) {
             Deadline:{" "}
             <strong style={{ color: "var(--text-dark)" }}>{assignment.kpiDeadline}</strong>
           </span>
-          {assignment.progress !== null && (
-            <span>
-              Progress:{" "}
-              <strong
-                style={{
-                  color:
-                    assignment.progress >= assignment.kpiTarget
-                      ? "var(--success)"
-                      : "var(--peach-deep)",
-                }}
-              >
-                {assignment.progress}%
-              </strong>
-            </span>
-          )}
+          <span>
+            Progress:{" "}
+            <strong
+              style={{
+                color:
+                  assignment.progress >= assignment.kpiTarget
+                    ? "var(--success)"
+                    : "var(--peach-deep)",
+              }}
+            >
+              {assignment.progress ?? 0}%
+            </strong>
+          </span>
         </div>
 
-        {assignment.managerComment && (
+        {hasSubmission && (
           <div
             className="rounded px-2 py-1 mb-2"
             style={{
               backgroundColor: "var(--peach-light)",
-              fontSize: "0.78rem",
-              color: "var(--text-muted)",
-              borderLeft: "3px solid var(--peach-dark)",
+              fontSize: "0.72rem",
+              color: "var(--peach-deep)",
             }}
           >
-            💬 {assignment.managerComment}
+            📎 Staff has submitted evidence
           </div>
         )}
 
         <div className="d-flex justify-content-end">
           <Button
             size="sm"
-            variant={isActionable ? "primary" : "outline-secondary"}
-            onClick={() => onReview(assignment)}
+            variant={hasSubmission ? "primary" : "outline-secondary"}
+            onClick={() => onViewSubmission(assignment)}
             style={
-              isActionable
+              hasSubmission
                 ? {}
                 : { borderColor: "var(--border)", color: "var(--text-muted)" }
             }
           >
-            {isActionable ? "Review Submission" : "View Details"}
+            {hasSubmission ? "View Submission" : "No Submission Yet"}
           </Button>
         </div>
       </Card.Body>
@@ -499,15 +449,46 @@ export default function KPIAssignment() {
   const { user } = useAuth();
   const [assignments, setAssignments] = useState([]);
   const [showAssignModal, setShowAssignModal] = useState(false);
-  const [reviewTarget, setReviewTarget] = useState(null);
-  const [activeTab, setActiveTab] = useState("all");
+  const [viewTarget, setViewTarget] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user?.uid) return;
 
-    const unsubscribe = subscribeAssignmentsByManager(user.uid, (data) => {
-      setAssignments(data);
+    // Subscribe to assignments
+    const unsubscribe = subscribeAssignmentsByManager(user.uid, async (assignmentData) => {
+      // Enrich each assignment with real-time data from kpis collection
+      const enrichedAssignments = await Promise.all(
+        assignmentData.map(async (assignment) => {
+          try {
+            // Fetch the actual KPI document to get latest progress and evidence
+            const kpiDocRef = doc(db, "kpis", assignment.kpiId);
+            const kpiDoc = await getDoc(kpiDocRef);
+            
+            if (kpiDoc.exists()) {
+              const kpiData = kpiDoc.data();
+              return {
+                ...assignment,
+                // Get latest progress and evidence from KPI collection
+                progress: kpiData.progress ?? assignment.progress,
+                evidence: kpiData.evidenceText || kpiData.evidence || assignment.evidence,
+                evidenceFileUrl: kpiData.evidenceFileUrl || assignment.evidenceFileUrl,
+                submittedAt: kpiData.submittedAt || assignment.submittedAt,
+                // ALWAYS use the snapshot from assignment, never from current KPI
+                kpiDescription: assignment.kpiDescription || "",
+                // Ensure staff name is correct
+                staffName: assignment.staffName || "Unknown Staff",
+              };
+            }
+            return assignment;
+          } catch (error) {
+            console.error("Error fetching KPI data for assignment:", assignment.id, error);
+            return assignment;
+          }
+        })
+      );
+      
+      setAssignments(enrichedAssignments);
       setLoading(false);
     });
 
@@ -517,43 +498,11 @@ export default function KPIAssignment() {
   const handleAssign = async (assignmentData) => {
     try {
       await createAssignment(assignmentData);
-      // Notification will be handled by your teammate's progress submission flow
-      // or you can add an optional notification here if needed
+      alert("KPI assigned successfully!");
     } catch (error) {
       console.error("Failed to create assignment:", error);
       alert("Failed to assign KPI. Please try again.");
     }
-  };
-
-  const handleDecision = async (id, status, comment) => {
-    try {
-      await updateAssignment(id, { status, managerComment: comment });
-    } catch (error) {
-      console.error("Failed to update assignment:", error);
-      alert("Failed to update. Please try again.");
-    }
-  };
-
-  const filtered = {
-    all: assignments,
-    pending: assignments.filter((a) => a.status === "pending"),
-    submitted: assignments.filter((a) => a.status === "submitted"),
-    approved: assignments.filter((a) => a.status === "approved"),
-    rejected: assignments.filter((a) => a.status === "rejected"),
-  };
-
-  const tabList = [
-    { key: "all", label: "All" },
-    { key: "pending", label: "Pending" },
-    { key: "submitted", label: "Submitted" },
-    { key: "approved", label: "Approved" },
-    { key: "rejected", label: "Rejected" },
-  ];
-
-  const counts = {
-    submitted: assignments.filter((a) => a.status === "submitted").length,
-    approved: assignments.filter((a) => a.status === "approved").length,
-    pending: assignments.filter((a) => a.status === "pending").length,
   };
 
   if (loading) {
@@ -575,7 +524,7 @@ export default function KPIAssignment() {
               marginBottom: 2,
             }}
           >
-            KPI Assignment & Verification
+            KPI Assignment
           </h4>
           <p
             style={{
@@ -584,7 +533,7 @@ export default function KPIAssignment() {
               margin: 0,
             }}
           >
-            Assign KPIs to staff, review submissions, and approve results.
+            Assign KPIs to staff and review their submitted evidence.
           </p>
         </div>
         <Button variant="primary" onClick={() => setShowAssignModal(true)}>
@@ -594,9 +543,9 @@ export default function KPIAssignment() {
 
       <Row className="g-3 mb-4">
         {[
-          { label: "Awaiting Review", value: counts.submitted, color: "var(--peach-dark)" },
-          { label: "Approved", value: counts.approved, color: "var(--success)" },
-          { label: "Pending", value: counts.pending, color: "var(--warning)" },
+          { label: "Total Assignments", value: assignments.length, color: "var(--peach-dark)" },
+          { label: "Has Submission", value: assignments.filter(a => a.evidence || a.evidenceFileUrl).length, color: "var(--success)" },
+          { label: "No Submission Yet", value: assignments.filter(a => !a.evidence && !a.evidenceFileUrl).length, color: "var(--warning)" },
         ].map(({ label, value, color }) => (
           <Col xs={4} key={label}>
             <Card
@@ -622,56 +571,20 @@ export default function KPIAssignment() {
         ))}
       </Row>
 
-      <div
-        className="d-flex gap-2 mb-3 flex-wrap"
-        style={{ borderBottom: "1px solid var(--border)", paddingBottom: 8 }}
-      >
-        {tabList.map(({ key, label }) => (
-          <button
-            key={key}
-            onClick={() => setActiveTab(key)}
-            style={{
-              background: "none",
-              border: "none",
-              padding: "4px 14px",
-              borderRadius: 20,
-              fontSize: "0.82rem",
-              fontWeight: activeTab === key ? 700 : 400,
-              color: activeTab === key ? "var(--text-light)" : "var(--text-muted)",
-              backgroundColor: activeTab === key ? "var(--peach-dark)" : "transparent",
-              cursor: "pointer",
-              transition: "all 0.15s",
-            }}
-          >
-            {label}
-            {filtered[key].length > 0 && (
-              <span
-                style={{
-                  marginLeft: 6,
-                  backgroundColor: activeTab === key ? "rgba(255,255,255,0.3)" : "var(--peach-light)",
-                  color: activeTab === key ? "#fff" : "var(--peach-deep)",
-                  borderRadius: 10,
-                  padding: "1px 6px",
-                  fontSize: "0.7rem",
-                }}
-              >
-                {filtered[key].length}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
-
-      {filtered[activeTab].length === 0 ? (
+      {assignments.length === 0 ? (
         <div
           className="text-center py-5"
           style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}
         >
-          No assignments in this category.
+          No assignments yet. Click "+ Assign KPI" to get started.
         </div>
       ) : (
-        filtered[activeTab].map((a) => (
-          <AssignmentCard key={a.id} assignment={a} onReview={(a) => setReviewTarget(a)} />
+        assignments.map((a) => (
+          <AssignmentCard
+            key={a.id}
+            assignment={a}
+            onViewSubmission={(a) => setViewTarget(a)}
+          />
         ))
       )}
 
@@ -684,11 +597,10 @@ export default function KPIAssignment() {
           existingAssignments={assignments}
         />
       )}
-      {reviewTarget && (
-        <ReviewModal
-          assignment={reviewTarget}
-          onClose={() => setReviewTarget(null)}
-          onDecision={handleDecision}
+      {viewTarget && (
+        <ViewSubmissionModal
+          assignment={viewTarget}
+          onClose={() => setViewTarget(null)}
         />
       )}
     </Container>

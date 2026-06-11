@@ -1,6 +1,7 @@
 export const createAssignmentModel = ({
   kpiId,
   kpiTitle,
+  kpiDescription,
   kpiTarget,
   kpiDeadline,
   staffUid,
@@ -10,18 +11,19 @@ export const createAssignmentModel = ({
 }) => ({
   kpiId,
   kpiTitle,
+  kpiDescription: kpiDescription || "",
   kpiTarget,
   kpiDeadline,
   staffUid,
   staffName,
-  assignedBy,        // manager name
-  assignedByUid,     // manager uid for filtering
+  assignedBy,
+  assignedByUid,
   assignedAt: new Date().toISOString(),
-  status: "pending", // pending | submitted | approved | rejected
+  // These will be synced from kpis collection
   progress: null,
   evidence: null,
+  evidenceFileUrl: null,
   submittedAt: null,
-  managerComment: "",
   updatedAt: new Date().toISOString(),
 });
 
