@@ -8,6 +8,7 @@ import {
   deleteUser,
 } from "firebase/auth";
 import { createUserModel, updateUserModel } from "../models/userModel";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 // ─── CREATE ────────────────────────────────────────────────
 // Called during register — saves user to Firestore
@@ -63,4 +64,14 @@ export const deleteUserAccount = async (currentPassword) => {
 // Soft deactivate: keeps data but marks account inactive
 export const deactivateUserAccount = async (uid) => {
   await updateDoc(doc(db, "users", uid), updateUserModel({ isActive: false }));
+};
+
+// ─── GET ALL USERS BY ROLE ─────────────────────────────────
+export const getUsersByRole = async (role) => {
+  const q = query(collection(db, "users"), where("role", "==", role));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((doc) => ({
+    uid: doc.id,
+    ...doc.data(),
+  }));
 };

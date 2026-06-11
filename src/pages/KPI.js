@@ -148,7 +148,7 @@ export default function KPI() {
         setEditingKPI(null);
         setModalOpen(false);
       } else {
-        const id = await createKpi(data);
+        const id = await createKpi({ ...data, createdByUid: user.uid });
         setModalOpen(false);
       }
     } finally {

@@ -4,6 +4,7 @@ export const createKpiModel = ({
   target,
   deadline,
   createdBy,
+  createdByUid,   // uid (for filtering)
   weightage = 0,
 }) => ({
   title,
@@ -11,6 +12,7 @@ export const createKpiModel = ({
   target,
   deadline,
   createdBy,
+  createdByUid,   // manager uid for filtering
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 });
