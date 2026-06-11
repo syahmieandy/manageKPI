@@ -1,7 +1,15 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import useAuth from "../hooks/useAuth";
-import { db } from "../firebase/config"; 
-import {collection, query, where, onSnapshot, doc, updateDoc, writeBatch } from "firebase/firestore";
+import { db } from "../firebase/config";
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  doc,
+  updateDoc,
+  writeBatch,
+} from "firebase/firestore";
 
 const NotificationContext = createContext();
 
@@ -17,27 +25,31 @@ export function NotificationProvider({ children }) {
 
     // Reference the notifications collection in the firestore
     const notificationsRef = collection(db, "notifications");
-    
+
     const q = query(notificationsRef, where("recipientUid", "==", user.uid));
 
     // webSocket pipeline connection
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const liveAlerts = snapshot.docs.map((doc) => ({
-        id: doc.id, // Stores the unique Firestore document auto-generated ID string
-        ...doc.data(),
-      }));
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const liveAlerts = snapshot.docs.map((doc) => ({
+          id: doc.id, // Stores the unique Firestore document auto-generated ID string
+          ...doc.data(),
+        }));
 
-      // Sort notifications locally by creation date 
-      liveAlerts.sort((a, b) => {
-        const timeA = a.createdAt?.seconds || 0;
-        const timeB = b.createdAt?.seconds || 0;
-        return timeB - timeA;
-      });
+        // Sort notifications locally by creation date
+        liveAlerts.sort((a, b) => {
+          const timeA = a.createdAt?.seconds || 0;
+          const timeB = b.createdAt?.seconds || 0;
+          return timeB - timeA;
+        });
 
-      setNotifications(liveAlerts);
-    }, (error) => {
-      console.error("Notification synchronization connection failed:", error);
-    });
+        setNotifications(liveAlerts);
+      },
+      (error) => {
+        console.error("Notification synchronization connection failed:", error);
+      },
+    );
 
     return () => unsubscribe();
   }, [user]);
@@ -54,7 +66,7 @@ export function NotificationProvider({ children }) {
   async function markAllAsRead() {
     try {
       const batch = writeBatch(db);
-      
+
       notifications.forEach((n) => {
         if (!n.read) {
           const docRef = doc(db, "notifications", n.id);

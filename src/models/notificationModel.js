@@ -1,15 +1,15 @@
 export const createNotificationModel = ({
-  recipientUid,  
-  senderName,    
-  message,       
-  type,          
+  recipientUid,
+  senderName,
+  message,
+  type,
 }) => ({
   recipientUid,
   senderName,
   message,
-  type: type ? type.toLowerCase() : "system", 
-  read: false,                                
-  createdAt: new Date(),                      
+  type: type ? type.toLowerCase() : "system",
+  read: false,
+  createdAt: new Date(),
   updatedAt: new Date(),
 });
 

@@ -1,11 +1,20 @@
 import { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { Container, Row, Col, Card, Form, Button, Modal, Spinner } from "react-bootstrap";
-import { 
-  deleteUserAccount, 
-  changeUserPassword, 
-  getUserProfile, 
-  updateUserProfile 
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  Form,
+  Button,
+  Modal,
+  Spinner,
+} from "react-bootstrap";
+import {
+  deleteUserAccount,
+  changeUserPassword,
+  getUserProfile,
+  updateUserProfile,
 } from "../services/userService";
 import { AuthContext } from "../context/AuthContext";
 
@@ -18,11 +27,11 @@ function Profile() {
     email: "",
     role: "",
   });
-  
+
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [hoverBtn, setHoverBtn] = useState(null);
-  
+
   // State for Deletion Modal
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [password, setPassword] = useState("");
@@ -33,7 +42,8 @@ function Profile() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const roleBadgeClass = user.role === "Manager" ? "bg-primary" : "bg-secondary";
+  const roleBadgeClass =
+    user.role === "Manager" ? "bg-primary" : "bg-secondary";
 
   // Fetch real user data from Firestore on mount
   useEffect(() => {
@@ -85,7 +95,7 @@ function Profile() {
     try {
       await deleteUserAccount(password);
       setShowDeleteModal(false);
-      navigate("/"); 
+      navigate("/");
     } catch (error) {
       alert("Error deleting account: " + error.message);
     }
@@ -97,7 +107,7 @@ function Profile() {
       alert("New passwords do not match. Please try again.");
       return;
     }
-    
+
     try {
       await changeUserPassword(currentPassword, newPassword);
       alert("Password updated successfully.");
@@ -140,7 +150,11 @@ function Profile() {
 
   if (isPageLoading) {
     return (
-      <Container fluid className="min-vh-100 d-flex align-items-center justify-content-center" style={{ backgroundColor: "var(--body-bg)" }}>
+      <Container
+        fluid
+        className="min-vh-100 d-flex align-items-center justify-content-center"
+        style={{ backgroundColor: "var(--body-bg)" }}
+      >
         <Spinner animation="border" variant="primary" />
       </Container>
     );
@@ -270,7 +284,10 @@ function Profile() {
                     onChange={handleChange}
                     disabled
                     title="Email updates require re-authentication"
-                    style={{ borderColor: "var(--border)", backgroundColor: "#e9ecef" }}
+                    style={{
+                      borderColor: "var(--border)",
+                      backgroundColor: "#e9ecef",
+                    }}
                   />
                 ) : (
                   <p className="text-muted mb-0">{user.email}</p>
@@ -289,7 +306,10 @@ function Profile() {
                     onChange={handleChange}
                     disabled
                     title="Role changes must be done by an administrator"
-                    style={{ borderColor: "var(--border)", backgroundColor: "#e9ecef" }}
+                    style={{
+                      borderColor: "var(--border)",
+                      backgroundColor: "#e9ecef",
+                    }}
                   >
                     <option value="Manager">Manager</option>
                     <option value="Staff">Staff</option>
@@ -312,16 +332,15 @@ function Profile() {
                   >
                     Save Changes
                   </Button>
-                  
-                  <Button 
-                    variant="outline-secondary" 
+
+                  <Button
+                    variant="outline-secondary"
                     onClick={() => setShowPasswordModal(true)}
                   >
                     Change Password
                   </Button>
                 </div>
               )}
-
             </Card.Body>
           </Card>
         </Col>
@@ -333,59 +352,75 @@ function Profile() {
           <Modal.Title>Confirm Account Deletion</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>Are you sure you want to delete your account? This action is irreversible.</p>
+          <p>
+            Are you sure you want to delete your account? This action is
+            irreversible.
+          </p>
           <Form.Group>
             <Form.Label>Enter password to confirm:</Form.Label>
-            <Form.Control 
-              type="password" 
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
+            <Form.Control
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
           </Form.Group>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
-          <Button variant="danger" onClick={handleDeleteAccount}>Delete Account</Button>
+          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={handleDeleteAccount}>
+            Delete Account
+          </Button>
         </Modal.Footer>
       </Modal>
 
       {/* Change Password Modal */}
-      <Modal show={showPasswordModal} onHide={() => setShowPasswordModal(false)}>
+      <Modal
+        show={showPasswordModal}
+        onHide={() => setShowPasswordModal(false)}
+      >
         <Modal.Header closeButton>
           <Modal.Title>Change Password</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form.Group className="mb-3">
             <Form.Label>Current Password</Form.Label>
-            <Form.Control 
-              type="password" 
-              value={currentPassword} 
-              onChange={(e) => setCurrentPassword(e.target.value)} 
+            <Form.Control
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
             />
           </Form.Group>
           <Form.Group className="mb-3">
             <Form.Label>New Password</Form.Label>
-            <Form.Control 
-              type="password" 
-              value={newPassword} 
-              onChange={(e) => setNewPassword(e.target.value)} 
+            <Form.Control
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
             />
           </Form.Group>
           <Form.Group>
             <Form.Label>Confirm New Password</Form.Label>
-            <Form.Control 
-              type="password" 
-              value={confirmPassword} 
-              onChange={(e) => setConfirmPassword(e.target.value)} 
+            <Form.Control
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
             />
           </Form.Group>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowPasswordModal(false)}>Cancel</Button>
-          <Button variant="primary" onClick={handlePasswordSubmit}>Update Password</Button>
+          <Button
+            variant="secondary"
+            onClick={() => setShowPasswordModal(false)}
+          >
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handlePasswordSubmit}>
+            Update Password
+          </Button>
         </Modal.Footer>
       </Modal>
-
     </Container>
   );
 }
