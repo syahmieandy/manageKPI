@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import useAuth from "../hooks/useAuth";
+import { db } from "../firebase/config"; 
+import {collection, query, where, onSnapshot, doc, updateDoc, writeBatch } from "firebase/firestore";
 
 const NotificationContext = createContext();
 
@@ -8,66 +10,62 @@ export function NotificationProvider({ children }) {
   const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
-    if (user?.role === "manager") {
-      setNotifications([
-        {
-          id: 1,
-          message: "Ahmad Faris submitted KPI: Revenue Growth",
-          read: false,
-          time: "2 mins ago",
-        },
-        {
-          id: 2,
-          message: "Nur Izzati submitted KPI: Website Traffic",
-          read: false,
-          time: "1 hour ago",
-        },
-        {
-          id: 3,
-          message: "KPI deadline approaching: Customer Retention",
-          read: true,
-          time: "2 hours ago",
-        },
-      ]);
-    } else if (user?.role === "staff") {
-      setNotifications([
-        {
-          id: 1,
-          message: "You have been assigned: Revenue Growth",
-          read: false,
-          time: "2 mins ago",
-        },
-        {
-          id: 2,
-          message: "Your KPI submission has been approved",
-          read: false,
-          time: "1 hour ago",
-        },
-        {
-          id: 3,
-          message: "You have been assigned: Website Traffic",
-          read: true,
-          time: "2 hours ago",
-        },
-      ]);
+    if (!user?.uid) {
+      setNotifications([]);
+      return;
     }
+
+    // Reference the notifications collection in the firestore
+    const notificationsRef = collection(db, "notifications");
+    
+    const q = query(notificationsRef, where("recipientUid", "==", user.uid));
+
+    // webSocket pipeline connection
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const liveAlerts = snapshot.docs.map((doc) => ({
+        id: doc.id, // Stores the unique Firestore document auto-generated ID string
+        ...doc.data(),
+      }));
+
+      // Sort notifications locally by creation date 
+      liveAlerts.sort((a, b) => {
+        const timeA = a.createdAt?.seconds || 0;
+        const timeB = b.createdAt?.seconds || 0;
+        return timeB - timeA;
+      });
+
+      setNotifications(liveAlerts);
+    }, (error) => {
+      console.error("Notification synchronization connection failed:", error);
+    });
+
+    return () => unsubscribe();
   }, [user]);
 
-  function markAsRead(id) {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
-    );
+  async function markAsRead(id) {
+    try {
+      const docRef = doc(db, "notifications", id);
+      await updateDoc(docRef, { read: true });
+    } catch (error) {
+      console.error("Failed to mark single notification as read:", error);
+    }
   }
 
-  function markAllAsRead() {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  }
+  async function markAllAsRead() {
+    try {
+      const batch = writeBatch(db);
+      
+      notifications.forEach((n) => {
+        if (!n.read) {
+          const docRef = doc(db, "notifications", n.id);
+          batch.update(docRef, { read: true });
+        }
+      });
 
-  function addNotification(message) {
-    setNotifications((prev) => [
-      { id: Date.now(), message, read: false, time: "Just now" },
-      ...prev,
-    ]);
+      await batch.commit();
+    } catch (error) {
+      console.error("Failed to batch execute update operations:", error);
+    }
   }
 
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -78,7 +76,6 @@ export function NotificationProvider({ children }) {
         notifications,
         markAsRead,
         markAllAsRead,
-        addNotification,
         unreadCount,
       }}
     >
